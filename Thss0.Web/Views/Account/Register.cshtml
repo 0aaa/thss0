@@ -1,12 +1,9 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model Thss0.Web.Models.ViewModels.RegisterViewModel
+﻿@model Thss0.Web.Models.ViewModels.RegisterViewModel
 @{
     ViewData["Title"] = "Register";
 }
-<h2>Register</h2>
-<a href="~/Home/Index" class="btn border mb-2">Main</a>
+<h2>@ViewData["Title"]</h2>
+<a href="~/Home/Index" class="btn border mb-2">Back</a>
 <form asp-action="Register" asp-controller="Account" asp-antiforgery="true" class="w-25">
     <div asp-validation-summary="ModelOnly"></div>
 

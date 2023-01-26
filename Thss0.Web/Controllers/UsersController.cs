@@ -1,54 +1,65 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Thss0.Web.Models;
+using Thss0.Web.Models.ViewModels;
 
 namespace Thss0.Web.Controllers
 {
+    //[Authorize(Roles ="admin")]
     public class UsersController : Controller
     {
         private readonly UserManager<IdentityUser> _usrMngr;
-        public UsersController(UserManager<IdentityUser> usrMngr)
+        private readonly RoleManager<IdentityRole> _rleMngr;
+        public UsersController(UserManager<IdentityUser> usrMngr, RoleManager<IdentityRole> rleMngr)
         {
             _usrMngr = usrMngr;
+            _rleMngr = rleMngr;
         }
 
-        // GET: Users
         public async Task<IActionResult> Index(string role)
-            => View(_usrMngr.GetUsersInRoleAsync(role).Result.Select(usr => new User
+        {
+            ViewData["role"] = role;
+            return View(_usrMngr.GetUsersInRoleAsync(role).Result.Select(usr => new UserViewModel
             {
-                Id = usr.Id,
                 Name = usr.UserName,
                 PhoneNumber = usr.PhoneNumber,
                 Email = usr.Email,
                 Role = _usrMngr.GetRolesAsync(usr).Result.FirstOrDefault() ?? "No role"
             }));
+        }
 
-        // GET: Users/Details/5
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(string email)
         {
-            if (id == null || _usrMngr.Users == null)
+            if (email == null || _usrMngr.Users == null)
             {
                 return NotFound();
             }
-            var usrToRtrn = await _usrMngr.Users.FirstOrDefaultAsync(usr => usr.Id == id);
+            var usrToRtrn = await _usrMngr.FindByEmailAsync(email);
             if (usrToRtrn == null)
             {
                 return NotFound();
             }
-            return View(usrToRtrn);
+            return View(new UserViewModel
+            {
+                Name = usrToRtrn.UserName,
+                PhoneNumber = usrToRtrn.PhoneNumber,
+                Email = usrToRtrn.Email,
+                Role = _usrMngr.GetRolesAsync(usrToRtrn).Result.FirstOrDefault() ?? "No role"
+            });
         }
 
-        // GET: Users/Create
-        public IActionResult Create()
-            => View();
+        public IActionResult Create(string role)
+        {
+            ViewData["role"] = role;
+            ViewData["roles"] = new SelectList(_rleMngr.Roles.Select(rle => rle.Name));
+            return View();
+        }
 
-        // POST: Users/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Password,PhoneNumber,Email,Role")] User user)
+        public async Task<IActionResult> Create([Bind("Name,Password,PhoneNumber,Email,Role")] UserViewModel user)
         {
             if (ModelState.IsValid)
             {
@@ -74,34 +85,37 @@ namespace Thss0.Web.Controllers
                     }
                     return RedirectToAction(nameof(Create), user);
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new RouteValueDictionary { { "role", user.Role } });
             }
             return View(user);
         }
 
-        // GET: Users/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(string email)
         {
-            if (id == null || _usrMngr.Users == null)
+            if (email == null || _usrMngr.Users == null)
             {
                 return NotFound();
             }
-            var usrToRtrn = await _usrMngr.Users.FirstOrDefaultAsync(usr => usr.Id == id);
+            var usrToRtrn = await _usrMngr.FindByEmailAsync(email);
             if (usrToRtrn == null)
             {
                 return NotFound();
             }
-            return View(usrToRtrn);
+            ViewData["roles"] = new SelectList(_rleMngr.Roles.Select(rle => rle.Name));
+            return View(new UserViewModel
+            {
+                Name = usrToRtrn.UserName,
+                PhoneNumber = usrToRtrn.PhoneNumber,
+                Email = usrToRtrn.Email,
+                Role = _usrMngr.GetRolesAsync(usrToRtrn).Result.FirstOrDefault() ?? "No role"
+            });
         }
 
-        // POST: Users/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,Name,Password,PhoneNumber,Email,Role")] User user)
+        public async Task<IActionResult> Edit(string email, [Bind("Name,Password,PhoneNumber,Email,Role")] UserViewModel user)
         {
-            if (id != user.Id)
+            if (email != user.Email)
             {
                 return NotFound();
             }
@@ -109,15 +123,16 @@ namespace Thss0.Web.Controllers
             {
                 try
                 {
-                    var usrToUpdte = await _usrMngr.Users.FirstOrDefaultAsync(usr => usr.Id == user.Id);
+                    var usrToUpdte = await _usrMngr.FindByEmailAsync(user.Email);
                     if (usrToUpdte != null)
                     {
-                        usrToUpdte.Id = user.Id;
                         usrToUpdte.UserName = user.Name;
                         usrToUpdte.PasswordHash = _usrMngr.PasswordHasher.HashPassword(usrToUpdte, user.Password);
                         usrToUpdte.PhoneNumber = user.PhoneNumber;
                         usrToUpdte.Email = user.Email;
                         var idnttyRslt = await _usrMngr.UpdateAsync(usrToUpdte);
+                        await _usrMngr.RemoveFromRolesAsync(usrToUpdte, await _usrMngr.GetRolesAsync(usrToUpdte));
+                        await _usrMngr.AddToRoleAsync(usrToUpdte, user.Role);
                         if (!idnttyRslt.Succeeded)
                         {
                             foreach (var err in idnttyRslt.Errors)
@@ -130,45 +145,49 @@ namespace Thss0.Web.Controllers
                 }
                 catch (Exception)
                 {
-                    if (!UserExists(user.Id))
+                    if (!UserExists(user.Email))
                     {
                         return NotFound();
                     }
                     throw;
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new RouteValueDictionary { { "role", user.Role } });
             }
             return View(user);
         }
 
-        // GET: Users/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Remove(string email)
         {
-            if (id == null || _usrMngr.Users == null)
+            if (email == null || _usrMngr.Users == null)
             {
                 NotFound();
             }
-            var usrToRtrn = await _usrMngr.Users.FirstOrDefaultAsync(usr => usr.Id == id);
+            var usrToRtrn = await _usrMngr.FindByEmailAsync(email);
             if (usrToRtrn == null)
             {
                 NotFound();
             }
-            return View(usrToRtrn);
+            return View(new UserViewModel
+            {
+                Name = usrToRtrn.UserName,
+                PhoneNumber = usrToRtrn.PhoneNumber,
+                Email = usrToRtrn.Email,
+                Role = _usrMngr.GetRolesAsync(usrToRtrn).Result.FirstOrDefault() ?? "No role"
+            });
         }
 
-        // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        public async Task<IActionResult> DeleteConfirmed(string email)
         {
             if (_usrMngr.Users == null)
             {
                 return Problem("Entity set 'ApplicationDbContext.Users'  is null.");
             }
-            var usrToDlte = _usrMngr.Users.FirstOrDefault(usr => usr.Id == id);
+            var usrToDlte = await _usrMngr.FindByEmailAsync(email);
             if (usrToDlte != null)
             {
-                var dlteRslt = await _usrMngr.DeleteAsync(await _usrMngr.FindByIdAsync(id));
+                var dlteRslt = await _usrMngr.DeleteAsync(usrToDlte);
                 if (!dlteRslt.Succeeded)
                 {
                     foreach (var err in dlteRslt.Errors)
@@ -178,10 +197,10 @@ namespace Thss0.Web.Controllers
                     return View();
                 }
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new RouteValueDictionary { { "roleName", (_usrMngr.GetRolesAsync(usrToDlte)).Result.FirstOrDefault() } });
         }
 
-        private bool UserExists(string id)
-            => _usrMngr.Users.Any(usr => usr.Id == id);
+        private bool UserExists(string email)
+            => _usrMngr.Users.Any(usr => usr.Email == email);
     }
 }

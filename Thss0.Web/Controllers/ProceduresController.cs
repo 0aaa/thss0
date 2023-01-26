@@ -1,26 +1,22 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Models;
 
 namespace Thss0.Web.Controllers
 {
+    //[Authorize]
     public class ProceduresController : Controller
     {
         private readonly ApplicationDbContext _context;
 
         public ProceduresController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+            => _context = context;
 
-        // GET: Procedures
         public async Task<IActionResult> Index()
-        {
-              return View(await _context.Procedures.ToListAsync());
-        }
+            => View(await _context.Procedures.ToListAsync());
 
-        // GET: Procedures/Details/5
         public async Task<IActionResult> Details(string id)
         {
             if (id == null || _context.Procedures == null)
@@ -38,21 +34,16 @@ namespace Thss0.Web.Controllers
             return View(procedure);
         }
 
-        // GET: Procedures/Create
         public IActionResult Create()
-        {
-            return View();
-        }
+            => View();
 
-        // POST: Procedures/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Department,CreationTime,RealizationTime,NextProcedureTime,Result")] Procedure procedure)
+        public async Task<IActionResult> Create([Bind("Name,Department,CreationTime,RealizationTime,NextProcedureTime,Result")] Procedure procedure)
         {
             if (ModelState.IsValid)
             {
+                procedure.Id = Guid.NewGuid().ToString();
                 _context.Add(procedure);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -60,7 +51,7 @@ namespace Thss0.Web.Controllers
             return View(procedure);
         }
 
-        // GET: Procedures/Edit/5
+        //[Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null || _context.Procedures == null)
@@ -76,9 +67,7 @@ namespace Thss0.Web.Controllers
             return View(procedure);
         }
 
-        // POST: Procedures/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //[Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, [Bind("Id,Name,Department,CreationTime,RealizationTime,NextProcedureTime,Result")] Procedure procedure)
@@ -111,7 +100,7 @@ namespace Thss0.Web.Controllers
             return View(procedure);
         }
 
-        // GET: Procedures/Delete/5
+        //[Authorize(Roles = "admin")]
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null || _context.Procedures == null)
@@ -129,7 +118,7 @@ namespace Thss0.Web.Controllers
             return View(procedure);
         }
 
-        // POST: Procedures/Delete/5
+        //[Authorize(Roles = "admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -143,14 +132,12 @@ namespace Thss0.Web.Controllers
             {
                 _context.Procedures.Remove(procedure);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ProcedureExists(string id)
-        {
-          return _context.Procedures.Any(e => e.Id == id);
-        }
+            => _context.Procedures.Any(e => e.Id == id);
     }
 }

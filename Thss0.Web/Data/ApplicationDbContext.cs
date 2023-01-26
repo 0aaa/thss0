@@ -10,36 +10,34 @@ namespace Thss0.Web.Data
         public DbSet<Substance> Substances { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
-        {
-            Database.EnsureCreated();
-        }
+                => Database.EnsureCreated();
+
         protected override void OnModelCreating(ModelBuilder mdlBldr)
         {
-            var testValuesArr = new[] { "test" };
-            var prcdrsArr = new Procedure[testValuesArr.Length];
-            var sbstncsArr = new Substance[testValuesArr.Length];
-            for (ushort i = 0; i < testValuesArr.Length; i++)
+            var tstVlsArr = new[] { "test" };
+            var prcdrsArr = new Procedure[tstVlsArr.Length];
+            var sbstncsArr = new Substance[tstVlsArr.Length];
+            for (ushort i = 0; i < tstVlsArr.Length; i++)
             {
                 prcdrsArr[i] = new Procedure
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Name = testValuesArr[i],
-                    Department = testValuesArr[i],
+                    Name = tstVlsArr[i],
+                    Department = tstVlsArr[i],
                     CreationTime = DateTime.Now,
                     RealizationTime = DateTime.Now,
                     NextProcedureTime = DateTime.Now,
-                    Result = testValuesArr[i]
+                    Result = tstVlsArr[i]
                 };
                 sbstncsArr[i] = new Substance
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Name = testValuesArr[i]
+                    Name = tstVlsArr[i]
                 };
             }
             mdlBldr.Entity<Procedure>().HasData(prcdrsArr);
             mdlBldr.Entity<Substance>().HasData(sbstncsArr);
             base.OnModelCreating(mdlBldr);
         }
-        public DbSet<Thss0.Web.Models.User> User { get; set; }
     }
 }

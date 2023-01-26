@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
+using System.Net;
 using Thss0.Web.Data;
 using Thss0.Web.Models;
 
 namespace Thss0.Web.Controllers
 {
+    //[Authorize]
     public class SubstancesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -14,13 +18,12 @@ namespace Thss0.Web.Controllers
             _context = context;
         }
 
-        // GET: Substances
         public async Task<IActionResult> Index()
         {
-              return View(await _context.Substances.ToListAsync());
+            //ApiHandling();
+            return View(await _context.Substances.ToListAsync());
         }
 
-        // GET: Substances/Details/5
         public async Task<IActionResult> Details(string id)
         {
             if (id == null || _context.Substances == null)
@@ -38,21 +41,16 @@ namespace Thss0.Web.Controllers
             return View(substance);
         }
 
-        // GET: Substances/Create
         public IActionResult Create()
-        {
-            return View();
-        }
+            => View();
 
-        // POST: Substances/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Substance substance)
+        public async Task<IActionResult> Create([Bind("Name")] Substance substance)
         {
             if (ModelState.IsValid)
             {
+                substance.Id = Guid.NewGuid().ToString();
                 _context.Add(substance);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -60,7 +58,7 @@ namespace Thss0.Web.Controllers
             return View(substance);
         }
 
-        // GET: Substances/Edit/5
+        //[Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null || _context.Substances == null)
@@ -76,9 +74,7 @@ namespace Thss0.Web.Controllers
             return View(substance);
         }
 
-        // POST: Substances/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //[Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, [Bind("Id,Name")] Substance substance)
@@ -111,7 +107,7 @@ namespace Thss0.Web.Controllers
             return View(substance);
         }
 
-        // GET: Substances/Delete/5
+        //[Authorize(Roles = "admin")]
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null || _context.Substances == null)
@@ -129,7 +125,7 @@ namespace Thss0.Web.Controllers
             return View(substance);
         }
 
-        // POST: Substances/Delete/5
+        //[Authorize(Roles = "admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -143,14 +139,29 @@ namespace Thss0.Web.Controllers
             {
                 _context.Substances.Remove(substance);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool SubstanceExists(string id)
+            => _context.Substances.Any(e => e.Id == id);
+
+        private async void ApiHandling()
         {
-          return _context.Substances.Any(e => e.Id == id);
+            ushort sbstncsQntty = 5;
+            var rqstStr = "http://www.vidal.ru/api/rest/v1/product/list";
+            var rsltStr = await new HttpClient().GetStringAsync(rqstStr);
+            var rsltJsn = JObject.Parse(rsltStr);
+            var sbstncs = new List<Substance>();
+            for (ushort i = 0; i < sbstncsQntty; i++)
+            {
+                sbstncs.Add(new Substance
+                {
+                    Id = rsltJsn["products"][i]["id"].ToString(),
+                    Name = rsltJsn["products"][i]["engName"].ToString(),
+                });
+            }
         }
     }
 }

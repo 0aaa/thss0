@@ -1,11 +1,11 @@
-﻿@model Thss0.Web.Models.User
+﻿@model Thss0.Web.Models.ViewModels.UserViewModel
 
 @{
     ViewData["Title"] = "Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Details</h1>
+<h1>@ViewData["Title"] @Model.GetType().ToString().Split('.').Last()</h1>
 
 <div>
     <h4>User</h4>
@@ -16,12 +16,6 @@
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Password)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Password)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.PhoneNumber)
@@ -44,6 +38,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-email=@Model?.Email class="btn btn-outline-primary">Edit</a> |
+    <a asp-action="Index" asp-route-role=@Model.Role class="btn btn-outline-primary">Back to List</a>
 </div>

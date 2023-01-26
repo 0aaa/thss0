@@ -1,8 +1,55 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .custom-shadow { text-shadow: 1px 1px 1px  black }
+</style>
+<div>
+    <ul class="flex-grow-1 list-unstyled row row-cols-2 g-2">
+        <li class="nav-item col-6">
+            <a class="nav-link card m-0 p-0 text-white" asp-controller="Users" asp-action="Index" asp-route-role="professional">
+                <img src="img/professionals.jpg" class="card-img opacity-75">
+                <div class="card-img-overlay">
+                    <h3 class="card-title custom-shadow">Professionals</h3>
+                    <div class="card-text custom-shadow fs-5">List of the care professionals</div>
+                </div>
+            </a>
+        </li>
+        <li class="nav-item col-6">
+            <a class="nav-link card text-black m-0 p-0 h-100" asp-controller="Users" asp-action="Index" asp-route-role="client">
+                <img src="img/clients.jpg" class="card-img h-100 opacity-75">
+                <div class="card-img-overlay">
+                    <h3 class="card-title">Clients</h3>
+                    <div class="card-text fs-5">List of our clients</div>
+                </div>
+            </a>
+        </li>
+        <li class="nav-item col-4">
+            <a class="nav-link card m-0 p-0 text-white h-100" asp-controller="Procedures" asp-action="Index">
+                <img src="img/procedure.jpg" class="card-img h-100 ">
+                <div class="card-img-overlay">
+                    <h5 class="card-title custom-shadow">Procedures</h5>
+                    <div class="card-text custom-shadow fw-bold">List of the procedures in a row</div>
+                </div>
+            </a>
+        </li>
+        <li class="nav-item col-4">
+            <a class="nav-link card m-0 p-0 text-black h-100" asp-controller="Substances" asp-action="Index">
+                <img src="img/substances.jpg" class="card-img opacity-50">
+                <div class="card-img-overlay">
+                    <h5 class="card-title">Substances</h5>
+                    <div class="card-text fw-bold">List of the allowed substances</div>
+                </div>
+            </a>
+        </li>
+        <li class="nav-item col-4">
+            <a class="nav-link card m-0 p-0 text-white h-100" asp-controller="Home" asp-action="Privacy">
+                <img src="img/privacy.jpg" class="card-img h-100 opacity-75">
+                <div class="card-img-overlay">
+                    <h5 class="card-title">Privacy</h5>
+                    <div class="card-text fw-bold">Learn more about protection of your personal data</div>
+                </div>
+            </a>
+        </li>
+    </ul>
 </div>

@@ -1,5 +1,7 @@
-async function addRecord(entityName, dctnry) {
-    const FETCH_RESULT = await fetch(`/api/${entityName}`, {
+import AUTH_TOKEN from "../config/consts"
+
+export async function addRecord(entityName, dctnry) {
+    const fetchResult = await fetch(`/api/${entityName}`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -8,10 +10,16 @@ async function addRecord(entityName, dctnry) {
         },
         body: JSON.stringify(dctnry)
     })
+    if (fetchResult.ok) {
+        // The state must be updated.
+        console.log(`${(await fetchResult.json()).id} added`)
+    } else {
+        console.log('adding error')
+    }
 }
-async function editRecord(entityName, recordId, dctnry) {
+export default async function editRecord(entityName, recordId, dctnry) {
 
-    const FETCH_RESULT = await fetch(`/api/${entityName}`, {
+    const fetchResult = await fetch(`/api/${entityName}`, {
         method: 'PUT',
         headers: {
             'Accept': 'application/json',
@@ -23,12 +31,35 @@ async function editRecord(entityName, recordId, dctnry) {
             dctnry
         })
     })
+    if (fetchResult.ok) {
+        // The state must be updated.
+        console.log(`${recordId} edited`)
+    } else {
+        console.log('editing error')
+    }
 }
-async function deleteRecord(entityName, recordId) {
-    const FETCH_RESULT = await fetch(`/api/${entityName}/${recordId}`, {
+export async function deleteRecord(entityName, recordId) {
+    const fetchResult = await fetch(`/api/${entityName}/${recordId}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `bearer ${sessionStorage.getItem(AUTH_TOKEN)}`
         }
     })
+    if (fetchResult.ok) {
+        // The state must be updated.
+        console.log(`${recordId} deleted`)
+    } else {
+    // To adjust.
+        document.getElementById('delete-error').innerHTML = ''
+        const err = await fetchResult.json()
+        if (err.errors) {
+            for (var e in err.errors) {
+                for (var r in err.errors[e]) {
+                    const message = document.createElement('p')
+                    message.append(err.errors[e][r])
+                    document.getElementById('delete-error').append(message)
+                }
+            }
+        }
+    }
 }

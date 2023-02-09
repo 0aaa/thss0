@@ -1,9 +1,12 @@
-const ERROR_404 = (props) => {
+import { useNavigate } from "react-router-dom"
+
+const Error404 = () => {
+    const navigation = useNavigate()
     return (
         <>
             <h5>Error 404</h5>
-            <button onClick={() => props.history.goBack()} className='btn btn-outline-danger'>Return</button>
+            <button onClick={() => navigation(-1)} className="btn btn-outline-primary">Return</button>
         </>
     )
 }
-export default ERROR_404
+export default Error404

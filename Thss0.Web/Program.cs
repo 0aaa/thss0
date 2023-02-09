@@ -41,6 +41,19 @@ namespace Thss0.Web
             builder.Services.AddSession();
             builder.Services.AddRazorPages();
 
+            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(
+            policy =>
+            {
+                policy.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+            });
+        });
+
             var app = builder.Build();
 
             app.UseSession();
@@ -56,9 +69,11 @@ namespace Thss0.Web
             app.UseStatusCodePages("text/html", "404");
             app.UseHttpsRedirection();
             app.UseDefaultFiles();
-            app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseCors();
+            app.UseStaticFiles();
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -66,7 +81,7 @@ namespace Thss0.Web
             {
                 cnfgrtn.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "api/{controller=Home}/{action=Index}/{id?}");
                 cnfgrtn.MapControllers();
             });
             app.MapRazorPages();

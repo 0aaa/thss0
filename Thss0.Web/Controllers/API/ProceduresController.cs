@@ -5,11 +5,16 @@ using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Models;
 
+using System.Web.Http.Cors;
+
 namespace Thss0.Web.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
     //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+
+    [EnableCors(origins: "*", headers: "*", methods: "*")]
+
     public class ProceduresController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -20,6 +25,9 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpGet]
+
+    [EnableCors(origins: "*", headers: "*", methods: "*")]
+
         public async Task<ActionResult<IEnumerable<Procedure>>> GetProcedures()
         {
             return await _context.Procedures.ToListAsync();

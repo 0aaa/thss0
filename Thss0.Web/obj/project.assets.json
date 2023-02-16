@@ -10515,11 +10515,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0\\Thss0.Web\\Thss0.Web.csproj",
+      "projectUniqueName": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\Thss0.Web.csproj",
       "projectName": "Thss0.Web",
-      "projectPath": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0\\Thss0.Web\\Thss0.Web.csproj",
+      "projectPath": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\Thss0.Web.csproj",
       "packagesPath": "C:\\Users\\pc\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0\\Thss0.Web\\obj\\",
+      "outputPath": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\pc\\AppData\\Roaming\\NuGet\\NuGet.Config",

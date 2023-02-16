@@ -69,16 +69,16 @@
       "PackagePath": "staticwebassets\\js\\thss0.fe\\build\\static\\css\\main.8d6a17ca.css.map"
     },
     {
-      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\build\\static\\js\\main.a7b1f15c.js",
-      "PackagePath": "staticwebassets\\js\\thss0.fe\\build\\static\\js\\main.a7b1f15c.js"
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\build\\static\\js\\main.5ab4cc11.js",
+      "PackagePath": "staticwebassets\\js\\thss0.fe\\build\\static\\js\\main.5ab4cc11.js"
     },
     {
-      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\build\\static\\js\\main.a7b1f15c.js.LICENSE.txt",
-      "PackagePath": "staticwebassets\\js\\thss0.fe\\build\\static\\js\\main.a7b1f15c.js.LICENSE.txt"
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\build\\static\\js\\main.5ab4cc11.js.LICENSE.txt",
+      "PackagePath": "staticwebassets\\js\\thss0.fe\\build\\static\\js\\main.5ab4cc11.js.LICENSE.txt"
     },
     {
-      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\build\\static\\js\\main.a7b1f15c.js.map",
-      "PackagePath": "staticwebassets\\js\\thss0.fe\\build\\static\\js\\main.a7b1f15c.js.map"
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\build\\static\\js\\main.5ab4cc11.js.map",
+      "PackagePath": "staticwebassets\\js\\thss0.fe\\build\\static\\js\\main.5ab4cc11.js.map"
     },
     {
       "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\package-lock.json",
@@ -129,20 +129,24 @@
       "PackagePath": "staticwebassets\\js\\thss0.fe\\src\\models\\crud\\delete.js"
     },
     {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\src\\models\\crud\\details.js",
+      "PackagePath": "staticwebassets\\js\\thss0.fe\\src\\models\\crud\\details.js"
+    },
+    {
       "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\src\\models\\crud\\edit.js",
       "PackagePath": "staticwebassets\\js\\thss0.fe\\src\\models\\crud\\edit.js"
     },
     {
-      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\src\\models\\crud\\get-all.js",
-      "PackagePath": "staticwebassets\\js\\thss0.fe\\src\\models\\crud\\get-all.js"
-    },
-    {
-      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\src\\models\\crud\\get.js",
-      "PackagePath": "staticwebassets\\js\\thss0.fe\\src\\models\\crud\\get.js"
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\src\\models\\crud\\list.js",
+      "PackagePath": "staticwebassets\\js\\thss0.fe\\src\\models\\crud\\list.js"
     },
     {
       "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\src\\models\\error-404.js",
       "PackagePath": "staticwebassets\\js\\thss0.fe\\src\\models\\error-404.js"
+    },
+    {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\src\\models\\privacy.js",
+      "PackagePath": "staticwebassets\\js\\thss0.fe\\src\\models\\privacy.js"
     },
     {
       "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\thss0.fe\\src\\services\\auth.js",

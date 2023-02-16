@@ -1,35 +1,59 @@
 import React from "react"
-import addRecord from "../../services/entity-service"
+import { useNavigate, useParams } from "react-router-dom"
+import API_URL from "../../config/consts"
+import { addRecord } from "../../services/entity-service"
 
-export default class Add extends React.Component {
+class Add extends React.Component {
+    constructor(props) {
+        super(props)
+        this.url = API_URL + props.params.entityName
+        this.state = {
+            keys: []
+        }
+        this.handleAdd = this.handleAdd.bind(this)
+    }
     handleAdd(event) {
         event.preventDefault()
-        addRecord(this.props.match.params.entityName, event)
+        let formCollection = {};
+        [...event.target.elements].forEach(cntrl => formCollection[cntrl.id] = cntrl.value)
+        delete formCollection['']
+        addRecord(this.url, formCollection)
+    }
+    async componentDidMount() {
+        const response = await fetch(this.url)
+        const data = (await response.json())[0]
+        delete data['id']
+        delete data['creationTime']                     // For the Procedure type only.
+        this.setState({ keys: Object.keys(data) })
     }
     render() {
         return (
             <>
-                <h5>Add new</h5>
+                <h5>Add new {this.props.params.entityName.replace(/.$/, '')}</h5>
                 <form onSubmit={this.handleAdd} className="w-50">
                     <table className="table">
                         <tbody>
-                            {Object.keys(this.state.content).map(cntnt =>
-                                <tr className="form-group">
-                                    <span id={cntnt + '-error'} className="alert alert-danger d-none" />
+                            {this.state.keys.map(k =>
+                                <tr key={k} className="form-group">
                                     <th>
-                                        <label for={cntnt} className="col-form-label">{cntnt}</label>
+                                        <label htmlFor={k} className="col-form-label">{k}</label>
                                     </th>
                                     <td>
-                                        <input id={cntnt} className="form-control" />
+                                        <span id={k + '-error'} className="alert alert-danger d-none"></span>
+                                        <input type={k.endsWith('Time') ? 'datetime-local' : 'text'} id={k} placeholder={k} className="form-control" />
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
-                    <input type="submit" value="Submit" className="btn btn-outline-primary" />
+                    <input type="submit" className="btn btn-outline-primary" />
                 </form>
-                <input onClick={this.props.history.goBack()} value="Back" className="btn btn-outline-primary" />
+                <button onClick={() => this.props.navigate(-1)} className="btn btn-outline-primary">Back</button>
             </>
         )
     }
 }
+function AddRouter(props) {
+    return <Add {...props} params={useParams()} navigate={useNavigate()} />
+}
+export default AddRouter

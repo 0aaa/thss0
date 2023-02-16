@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
-import getTokenAsync from '../../services/auth'
-import LOGIN_PATH from '../../config/consts'
 import { useNavigate } from 'react-router-dom'
+import { getTokenAsync } from '../../services/auth'
+import LOGIN_PATH from '../../config/consts'
 
 async function HandleLogin(event) {
     event.preventDefault()

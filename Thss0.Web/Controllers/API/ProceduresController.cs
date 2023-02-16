@@ -1,20 +1,17 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Models;
-
-using System.Web.Http.Cors;
+using Thss0.Web.Models.ViewModels;
 
 namespace Thss0.Web.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
     //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-
-    [EnableCors(origins: "*", headers: "*", methods: "*")]
-
     public class ProceduresController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -25,9 +22,6 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpGet]
-
-    [EnableCors(origins: "*", headers: "*", methods: "*")]
-
         public async Task<ActionResult<IEnumerable<Procedure>>> GetProcedures()
         {
             return await _context.Procedures.ToListAsync();
@@ -47,14 +41,21 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProcedure(string id, Procedure procedure)
+        public async Task<IActionResult> PutProcedure(string id, ProcedureViewModel procedure)
         {
             if (id != procedure.Id)
             {
                 return BadRequest();
             }
-
-            _context.Entry(procedure).State = EntityState.Modified;
+            var procedureToUpdate = new Procedure{
+                Id = procedure.Id,
+                Name = procedure.Name,
+                Department = procedure.Department,
+                RealizationTime = procedure.RealizationTime,
+                NextProcedureTime = procedure.NextProcedureTime,
+                Result = procedure.Result
+            };
+            _context.Entry(procedureToUpdate).State = EntityState.Modified;
 
             try
             {
@@ -76,16 +77,28 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPost]
-        public async Task<ActionResult<Procedure>> PostProcedure(Procedure procedure)
+        public async Task<ActionResult<Procedure>> PostProcedure(ProcedureViewModel procedure)// To edit.
         {
-            _context.Procedures.Add(procedure);
+            var procedureToAdd = new Procedure
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = procedure.Name,
+                Department = procedure.Department,
+                CreationTime = DateTime.Now,
+                RealizationTime = procedure.RealizationTime,
+                NextProcedureTime = procedure.NextProcedureTime,
+                Result = procedure.Result,
+                Users = new HashSet<IdentityUser> { new IdentityUser { UserName = procedure.Users } },
+                Substances = new HashSet<Substance> { new Substance { Id = Guid.NewGuid().ToString(), Name = procedure.Substances } }
+            };
+            _context.Procedures.Add(procedureToAdd);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (ProcedureExists(procedure.Id))
+                if (ProcedureExists(procedureToAdd.Id))
                 {
                     return Conflict();
                 }
@@ -95,7 +108,7 @@ namespace Thss0.Web.Controllers.API
                 }
             }
 
-            return CreatedAtAction("GetProcedure", new { id = procedure.Id }, procedure);
+            return CreatedAtAction("GetProcedure", new { id = procedureToAdd.Id }, _context.Procedures.FirstOrDefault());
         }
 
         [HttpDelete("{id}")]
@@ -108,7 +121,8 @@ namespace Thss0.Web.Controllers.API
             }
 
             _context.Procedures.Remove(procedure);
-            await _context.SaveChangesAsync();
+            // await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             return NoContent();
         }

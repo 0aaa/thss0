@@ -1,8 +1,8 @@
-import { AUTH_TOKEN, REGISTER_PATH } from "../config/consts"
 import { useNavigate } from "react-router-dom"
 import { useEffect } from "react"
+import { AUTH_TOKEN, REGISTER_PATH } from "../config/consts"
 
-export async function makeRegister(event) {
+async function makeRegister(event) {
     const userInput = {
         name: event.name,
         email: event.email,
@@ -20,7 +20,7 @@ export async function makeRegister(event) {
     console.log(`register: ${fetchResult.ok}`)
     return fetchResult.ok
 }
-export async function getTokenAsync(event) {
+async function getTokenAsync(event) {
     const userInput = {
         name: document.getElementById('name').value,
         password: document.getElementById('password').value
@@ -42,9 +42,14 @@ export async function getTokenAsync(event) {
         return false
     }
 }
-export default function Logout() {
+function Logout() {
     console.log('logout')
     const navigate = useNavigate()
     sessionStorage.removeItem(AUTH_TOKEN)
     useEffect(() => navigate(REGISTER_PATH))
+}
+export {
+    makeRegister,
+    getTokenAsync,
+    Logout
 }

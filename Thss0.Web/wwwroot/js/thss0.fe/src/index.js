@@ -1,13 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, NavLink, Route, Routes } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.css'
 import App from './App';
 import Register from './models/auth/register'
 import Login from './models/auth/login'
-import Logout from './services/auth'
+import { Logout } from './services/auth'
 import Error404 from './models/error-404'
-import 'bootstrap/dist/css/bootstrap.css'
-import GetAllRouter from './models/crud/get-all';
+import Privacy from './models/privacy';
+import ListRouter from './models/crud/list';
+import AddRouter from './models/crud/add';
+import DeleteRouter from './models/crud/delete';
+import DetailsRouter from './models/crud/details';
+import EditRouter from './models/crud/edit';
 
 const navigation = (
   <Router>
@@ -44,10 +49,12 @@ const navigation = (
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
-        {/*To add.*/}
-        <Route path="/privacy" element={<></>}/>
-        {/**/}
-        <Route path="/:entityName" element={<GetAllRouter />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/:entityName" element={<ListRouter />} />
+        <Route path="/add/:entityName" element={<AddRouter />} />
+        <Route path="/details/:entityName/:id" element={<DetailsRouter />} />
+        <Route path="/edit/:entityName/:id" element={<EditRouter />} />
+        <Route path="/delete/:entityName/:id" element={<DeleteRouter />} />
         <Route path="*" element={<Error404 />} />
       </Routes>
     </ul>

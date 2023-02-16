@@ -1,21 +1,29 @@
 import React from "react"
-import editRecord from "../../services/entity-service"
+import { useNavigate, useParams } from "react-router-dom"
+import API_URL from "../../config/consts"
+import { editRecord } from "../../services/entity-service"
 
-export default class Edit extends React.Component {
+class Edit extends React.Component {
     constructor(props) {
         super(props)
-        this.url = decodeURIComponent(props.match.params.href)
+        this.url = API_URL + props.params.entityName + '/' + props.params.id
         this.state = {
             content: []
         }
+        this.handleEdit = this.handleEdit.bind(this)
     }
     handleEdit(event) {
         event.preventDefault()
-        editRecord(this.props.match.params.entityName, event, event)
+        let formCollection = {};
+        [...event.target.elements].forEach((cntrl) => formCollection[cntrl.id] = cntrl.value)
+        delete formCollection['']
+        editRecord(this.url, formCollection)
+        this.props.navigate(-1)
     }
     async componentDidMount() {
         const response = await fetch(this.url)
         const content = await response.json()
+        delete content['creationTime']                  // For the Procedure type only.
         this.setState({ content })
     }
     render() {
@@ -26,13 +34,16 @@ export default class Edit extends React.Component {
                     <table className="table">
                         <tbody>
                             {Object.keys(this.state.content).map(cntnt =>
-                                <tr className="form-group">
-                                    <span id={cntnt + '-error'} className="alert alert-danger d-none" />
+                                <tr key={cntnt} className={`form-group ${cntnt === 'id' ? 'd-none' : ''}`}>
                                     <th>
-                                        <label for={cntnt} className="col-form-label">{cntnt}</label>
+                                        <label htmlFor={cntnt} className="col-form-label">{cntnt}</label>
                                     </th>
                                     <td>
-                                        <input id={cntnt} value={this.state.content[cntnt]} className="form-control" />
+                                        <span id={cntnt + '-error'} className="alert alert-danger d-none" />
+                                        <input type={cntnt.endsWith('Time') ? 'datetime-local' : 'text'}
+                                            id={cntnt}
+                                            defaultValue={this.state.content[cntnt].length > 0 ? this.state.content[cntnt] : 'Empty'}
+                                            className="form-control" />
                                     </td>
                                 </tr>
                             )}
@@ -40,8 +51,12 @@ export default class Edit extends React.Component {
                     </table>
                     <input type="submit" value="Submit" className="btn btn-outline-primary" />
                 </form>
-                <input onClick={this.props.history.goBack()} value="Back" className="btn btn-outline-primary" />
+                <button onClick={() => this.props.navigate(-1)} className="btn btn-outline-primary">Back</button>
             </>
         )
     }
 }
+function EditRouter(props) {
+    return <Edit {...props} params={useParams()} navigate={useNavigate()} />
+}
+export default EditRouter

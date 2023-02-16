@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Thss0.Web.Data
 {
@@ -35,8 +36,26 @@ namespace Thss0.Web.Data
                     Name = tstVlsArr[i]
                 };
             }
-            mdlBldr.Entity<Procedure>().HasData(prcdrsArr);
-            mdlBldr.Entity<Substance>().HasData(sbstncsArr);
+            // mdlBldr.Entity<Procedure>().HasData(prcdrsArr);
+            // mdlBldr.Entity<Substance>().HasData(sbstncsArr);
+            mdlBldr.Entity<Procedure>()
+                    .HasMany(e => e.Substances)
+                    .WithMany(e => e.Procedures)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "Tutelage",
+                        x => x.HasOne<Substance>().WithMany().OnDelete(DeleteBehavior.Restrict),
+                        x => x.HasOne<Procedure>().WithMany().OnDelete(DeleteBehavior.Restrict)
+                    )
+                    .OnDelete(DeleteBehavior.Restrict);
+            mdlBldr.Entity<Substance>()
+                    .HasMany(e => e.Procedures)
+                    .WithMany(e => e.Substances)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "Tutelage",
+                        x => x.HasOne<Procedure>().WithMany().OnDelete(DeleteBehavior.Restrict),
+                        x => x.HasOne<Substance>().WithMany().OnDelete(DeleteBehavior.Restrict)
+                    )
+                    .OnDelete(DeleteBehavior.Restrict);
             base.OnModelCreating(mdlBldr);
         }
     }

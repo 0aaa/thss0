@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
-import makeRegister from '../../services/auth'
-import REGISTER_PATH from '../../config/consts'
 import { useNavigate } from 'react-router-dom'
+import { makeRegister } from '../../services/auth'
+import REGISTER_PATH from '../../config/consts'
 
 async function HandleRegister(event) {
     event.preventDefault()

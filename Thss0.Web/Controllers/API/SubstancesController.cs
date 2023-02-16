@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Models;
+using Thss0.Web.Models.ViewModels;
 
 namespace Thss0.Web.Controllers.API
 {
@@ -39,14 +40,18 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSubstance(string id, Substance substance)
+        public async Task<IActionResult> PutSubstance(string id, SubstanceViewModel substance)
         {
             if (id != substance.Id)
             {
                 return BadRequest();
             }
-
-            _context.Entry(substance).State = EntityState.Modified;
+            var substanceToUpdate = new Substance
+            {
+                Id = substance.Id,
+                Name = substance.Name
+            };
+            _context.Entry(substanceToUpdate).State = EntityState.Modified;
 
             try
             {
@@ -68,16 +73,22 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPost]
-        public async Task<ActionResult<Substance>> PostSubstance(Substance substance)
+        public async Task<ActionResult<Substance>> PostSubstance(SubstanceViewModel substance)
         {
-            _context.Substances.Add(substance);
+            var substanceToAdd = new Substance
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = substance.Name,
+                Procedures = new HashSet<Procedure> { new Procedure() { Id = Guid.NewGuid().ToString(), Name = substance.Procedure } }
+            };
+            _context.Substances.Add(substanceToAdd);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (SubstanceExists(substance.Id))
+                if (SubstanceExists(substanceToAdd.Id))
                 {
                     return Conflict();
                 }
@@ -87,7 +98,7 @@ namespace Thss0.Web.Controllers.API
                 }
             }
 
-            return CreatedAtAction("GetSubstance", new { id = substance.Id }, substance);
+            return CreatedAtAction("GetSubstance", new { id = substanceToAdd.Id }, _context.Substances.FirstOrDefault());
         }
 
         [HttpDelete("{id}")]

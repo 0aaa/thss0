@@ -12,13 +12,13 @@ namespace Thss0.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-            builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
-            builder.Services.AddAuthentication(optns =>
+                                                                    options.UseSqlServer(builder.Configuration
+                                                                            .GetConnectionString("DefaultConnection")))
+                            .AddDatabaseDeveloperPageExceptionFilter()
+                            .AddIdentity<IdentityUser, IdentityRole>()
+                            .AddEntityFrameworkStores<ApplicationDbContext>();
+            /*builder.Services.AddAuthentication(optns =>
                             {
                                 optns.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                                 optns.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -36,55 +36,46 @@ namespace Thss0.Web
                                     ValidateIssuerSigningKey = true,
                                     IssuerSigningKey = AuthCredentials.GetKey()
                                 };
-                            });
+                            });*/
             builder.Services.AddControllersWithViews();
-            builder.Services.AddSession();
-            builder.Services.AddRazorPages();
-
-            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
-    builder.Services.AddCors(options =>
-    {
-        options.AddDefaultPolicy(
-            policy =>
-            {
-                policy.AllowAnyOrigin()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-            });
-        });
+            //builder.Services.AddSession()
+            //                .AddRazorPages()
+            //                ;
 
             var app = builder.Build();
 
-            app.UseSession();
+            /*app.UseSession();
             if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
-                app.UseHsts();
-            }
-            app.UseStatusCodePages("text/html", "404");
-            app.UseHttpsRedirection();
-            app.UseDefaultFiles();
+                app.UseExceptionHandler("/Home/Error")
+                    .UseHsts();
+            }*/
+            app
+                //.UseStatusCodePages("text/html", "404")
+                .UseDefaultFiles()
+                .UseStaticFiles()
 
-            app.UseRouting();
+                .UseCors(bldr =>
+                    bldr.WithOrigins("http://localhost:3000")
+                        .WithHeaders("content-type", "authorization")
+                        .WithMethods("GET", "PUT", "POST", "DELETE", "OPTIONS"))
+                //.UseHttpsRedirection()
+                .UseRouting()
 
-            app.UseCors();
-            app.UseStaticFiles();
-
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseEndpoints(cnfgrtn =>
-            {
-                cnfgrtn.MapControllerRoute(
-                    name: "default",
-                    pattern: "api/{controller=Home}/{action=Index}/{id?}");
-                cnfgrtn.MapControllers();
-            });
-            app.MapRazorPages();
+                //.UseAuthentication()
+                //.UseAuthorization()
+                .UseEndpoints(cnfgrtn =>
+                {
+                    cnfgrtn.MapControllerRoute(
+                        name: "default",
+                        pattern: "api/{controller=Home}/{action=Index}");
+                    cnfgrtn.MapControllers();
+                });
+            //app.MapRazorPages();
 
             app.Run();
         }

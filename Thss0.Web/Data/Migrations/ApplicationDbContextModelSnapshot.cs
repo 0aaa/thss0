@@ -122,6 +122,8 @@ namespace Thss0.Web.Data.Migrations
                         .HasColumnType("nvarchar(256)")
                         .HasMaxLength(256);
 
+                    b.Property<string>("ProcedureId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
@@ -131,6 +133,11 @@ namespace Thss0.Web.Data.Migrations
                         .IsUnique()
                         .HasName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasOne("Thss0.Web.Models.Procedure", null)
+                        .WithMany()
+                        .HasForeignKey("ProcedureId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.ToTable("AspNetUsers");
                 });

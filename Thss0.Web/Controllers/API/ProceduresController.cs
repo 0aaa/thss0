@@ -121,8 +121,14 @@ namespace Thss0.Web.Controllers.API
             }
 
             _context.Procedures.Remove(procedure);
-            // await _context.SaveChangesAsync();
-            _context.SaveChanges();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception excptn)
+            {
+                Console.WriteLine(excptn.Message);
+            }
 
             return NoContent();
         }

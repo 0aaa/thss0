@@ -5,7 +5,7 @@ import API_URL from '../../config/consts'
 class List extends React.Component {
     constructor(props) {
         super(props)
-        this.url = API_URL + props.params.entityName
+        this.url = API_URL + props.params.entityName + '/' + (props.params.roleIndex ?? '')
         this.state = {
             content: []
         }

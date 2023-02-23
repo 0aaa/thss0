@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\Thss1.DAL.props" />
+</Project>

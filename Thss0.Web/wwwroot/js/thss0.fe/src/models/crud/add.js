@@ -23,7 +23,7 @@ class Add extends React.Component {
         const response = await fetch(this.url)
         const data = (await response.json())[0]
         delete data['id']
-        delete data['creationTime']                     // For the Procedure type only.
+        // delete data['creationTime']                     // For the Procedure type only.
         this.setState({ keys: Object.keys(data) })
     }
     render() {

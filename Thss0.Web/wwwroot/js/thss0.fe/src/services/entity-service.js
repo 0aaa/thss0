@@ -5,7 +5,6 @@ async function addRecord(requestUrl, crdntlsDctnry) {
     // crdntlsDctnry['realizationTime'] = new Date(crdntlsDctnry['realizationTime'])
     // crdntlsDctnry['nextProcedureTime'] = new Date(crdntlsDctnry['nextProcedureTime'])
     //
-    console.log(crdntlsDctnry)
     const fetchResult = await fetch(requestUrl, {
         method: 'POST',
         headers: {
@@ -15,7 +14,6 @@ async function addRecord(requestUrl, crdntlsDctnry) {
         },
         body: JSON.stringify(crdntlsDctnry)
     })
-    console.log(fetchResult)
     if (fetchResult.ok) {
         // The state must be updated.
         console.log(`${(await fetchResult.json()).id} added`)
@@ -25,7 +23,6 @@ async function addRecord(requestUrl, crdntlsDctnry) {
 }
 
 async function editRecord(requestUrl, crdntlsDctnry) {
-    console.log(crdntlsDctnry)
     const fetchResult = await fetch(requestUrl, {
         method: 'PUT',
         headers: {
@@ -37,7 +34,7 @@ async function editRecord(requestUrl, crdntlsDctnry) {
     })
     if (fetchResult.ok) {
         // The state must be updated.
-        console.log(`edited ${requestUrl}`)
+        console.log(`edited ${crdntlsDctnry['id']}`)
     } else {
         console.log('editing error')
     }

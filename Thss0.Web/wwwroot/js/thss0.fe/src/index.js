@@ -21,10 +21,10 @@ const navigation = (
         <NavLink to="/">Home</NavLink>
       </li>
       <li>
-        <NavLink to="/professionals">Professionals</NavLink>
+        <NavLink to="/users/1">Professionals</NavLink>
       </li>
       <li>
-        <NavLink to="/clients">Clients</NavLink>
+        <NavLink to="/users/0">Clients</NavLink>
       </li>
       <li>
         <NavLink to="/procedures">Procedures</NavLink>
@@ -50,7 +50,7 @@ const navigation = (
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/privacy" element={<Privacy />} />
-        <Route path="/:entityName" element={<ListRouter />} />
+        <Route path="/:entityName/:roleIndex?" element={<ListRouter />} />
         <Route path="/add/:entityName" element={<AddRouter />} />
         <Route path="/details/:entityName/:id" element={<DetailsRouter />} />
         <Route path="/edit/:entityName/:id" element={<EditRouter />} />

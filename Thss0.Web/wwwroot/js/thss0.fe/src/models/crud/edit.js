@@ -23,7 +23,7 @@ class Edit extends React.Component {
     async componentDidMount() {
         const response = await fetch(this.url)
         const content = await response.json()
-        delete content['creationTime']                  // For the Procedure type only.
+        // delete content['creationTime']                  // For the Procedure type only.
         this.setState({ content })
     }
     render() {

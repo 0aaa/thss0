@@ -1,0 +1,30 @@
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace Thss0.DAL.Context
+{
+    public class Procedure
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Department { get; set; }
+        public DateTime CreationTime { get; set; }
+        public DateTime RealizationTime { get; set; }
+        public DateTime NextProcedureTime { get; set; }
+        public string Result { get; set; }
+        public virtual IdentityUser Client { get; set; }
+        public virtual HashSet<IdentityUser> Professionals { get; set; }
+        public virtual HashSet<Substance> Substances { get; set; }
+        public Procedure()
+        {
+            Id = "";
+            Name = "";
+            Department = "";
+            CreationTime = DateTime.MinValue;
+            RealizationTime = DateTime.MinValue;
+            NextProcedureTime = DateTime.MinValue;
+            Result = "";
+            Professionals = new HashSet<IdentityUser>();
+            Substances = new HashSet<Substance>();
+        }
+    }
+}

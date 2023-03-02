@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Thss0.Web.Config;
 using Thss0.Web.Data;
+using Thss0.Web.Models;
 
 namespace Thss0.Web
 {
@@ -12,11 +13,11 @@ namespace Thss0.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var cnctnStr = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                                                                    options.UseSqlServer(builder.Configuration
-                                                                            .GetConnectionString("DefaultConnection")))
+                                options.UseMySql(cnctnStr, ServerVersion.AutoDetect(cnctnStr)))
                             .AddDatabaseDeveloperPageExceptionFilter()
-                            .AddIdentity<IdentityUser, IdentityRole>()
+                            .AddIdentity<ApplicationUser, IdentityRole>()
                             .AddEntityFrameworkStores<ApplicationDbContext>();
             /*builder.Services.AddAuthentication(optns =>
                             {

@@ -88,7 +88,7 @@ namespace Thss0.Web.Controllers.API
                 RealizationTime = procedure.RealizationTime,
                 NextProcedureTime = procedure.NextProcedureTime,
                 Result = procedure.Result,
-                Users = new HashSet<IdentityUser> { new IdentityUser { UserName = procedure.Users } },
+                Users = new HashSet<ApplicationUser> { new ApplicationUser { UserName = procedure.Users } },
                 Substances = new HashSet<Substance> { new Substance { Id = Guid.NewGuid().ToString(), Name = procedure.Substances } }
             };
             _context.Procedures.Add(procedureToAdd);

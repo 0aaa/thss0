@@ -4,15 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Models.ViewModels;
+using Thss0.Web.Models;
 
 namespace Thss0.Web.Controllers
 {
     //[Authorize(Roles ="admin")]
     public class UsersController : Controller
     {
-        private readonly UserManager<IdentityUser> _usrMngr;
+        private readonly UserManager<ApplicationUser> _usrMngr;
         private readonly RoleManager<IdentityRole> _rleMngr;
-        public UsersController(UserManager<IdentityUser> usrMngr, RoleManager<IdentityRole> rleMngr)
+        public UsersController(UserManager<ApplicationUser> usrMngr, RoleManager<IdentityRole> rleMngr)
         {
             _usrMngr = usrMngr;
             _rleMngr = rleMngr;
@@ -63,7 +64,7 @@ namespace Thss0.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var usrToAdd = new IdentityUser
+                var usrToAdd = new ApplicationUser
                 {
                     UserName = user.Name,
                     PhoneNumber = user.PhoneNumber,

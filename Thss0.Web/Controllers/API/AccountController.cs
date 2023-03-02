@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Thss0.Web.Config;
 using Thss0.Web.Models.ViewModels;
+using Thss0.Web.Models;
 
 namespace Thss0.Web.Controllers.API
 {
@@ -15,8 +16,8 @@ namespace Thss0.Web.Controllers.API
         private const string DEFAULT_ROLE_CLAIM_TYPE = "admin";
         private const string CLAIM_AUTHENTICATION_TYPE = "Token";
         private const string ERROR_TEXT = "Wrong login or password";
-        private readonly SignInManager<IdentityUser> _sgnInMngr;
-        public AccountController(SignInManager<IdentityUser> sgnInMngr)
+        private readonly SignInManager<ApplicationUser> _sgnInMngr;
+        public AccountController(SignInManager<ApplicationUser> sgnInMngr)
             => _sgnInMngr = sgnInMngr;
 
         private async Task<ClaimsIdentity> GetIdentity(string nme, string pswrd)

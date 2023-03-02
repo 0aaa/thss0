@@ -1,8 +1,0 @@
-C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.csproj.AssemblyReference.cache
-C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.AssemblyInfoInputs.cache
-C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.AssemblyInfo.cs
-C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.csproj.CoreCompileInputs.cache
-C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.RazorAssemblyInfo.cache
-C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.RazorAssemblyInfo.cs

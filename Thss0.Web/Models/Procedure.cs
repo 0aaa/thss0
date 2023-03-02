@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-
-namespace Thss0.Web.Models
+﻿namespace Thss0.Web.Models
 {
     public class Procedure
     {
@@ -11,7 +9,7 @@ namespace Thss0.Web.Models
         public DateTime RealizationTime { get; set; } = DateTime.MinValue;
         public DateTime NextProcedureTime { get; set; } = DateTime.MinValue;
         public string Result { get; set; } = "";
-        public virtual HashSet<IdentityUser> Users { get; set; } = new HashSet<IdentityUser>();
+        public virtual HashSet<ApplicationUser> Users { get; set; } = new HashSet<ApplicationUser>();
         public virtual HashSet<Substance> Substances { get; set; } = new HashSet<Substance>();
     }
 }

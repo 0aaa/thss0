@@ -3,6 +3,8 @@
 # dependencies
 /node_modules
 /Thss0.Web/wwwroot/js/thss0.fe/node_modules
+/Thss0.FE/node_modules
+/3l0.0
 /.pnp
 .pnp.js
 

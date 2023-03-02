@@ -1,6 +1,0 @@
-C:\Users\pc\source\repos\exams\Thss1\Thss0.UI\obj\Debug\net6.0-windows\Thss1.UI.csproj.AssemblyReference.cache
-C:\Users\pc\source\repos\exams\Thss1\Thss0.UI\obj\Debug\net6.0-windows\View\ShellView.g.cs
-C:\Users\pc\source\repos\exams\Thss1\Thss0.UI\obj\Debug\net6.0-windows\App.g.cs
-C:\Users\pc\source\repos\exams\Thss1\Thss0.UI\obj\Debug\net6.0-windows\GeneratedInternalTypeHelper.g.cs
-C:\Users\pc\source\repos\exams\Thss1\Thss0.UI\obj\Debug\net6.0-windows\Thss1.UI_MarkupCompile.cache
-C:\Users\pc\source\repos\exams\Thss1\Thss0.UI\obj\Debug\net6.0-windows\Thss1.UI_MarkupCompile.lref

@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.AspNetCore.Identity;
 
 namespace Thss0.Web.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public DbSet<Procedure> Procedures { get; set; }
         public DbSet<Substance> Substances { get; set; }
@@ -37,10 +35,10 @@ namespace Thss0.Web.Data
                     Name = tstVlsArr[i]
                 };
             }
-            //mdlBldr.Entity<IdentityUser>().HasOne("ProcedureId").WithOne().OnDelete(DeleteBehavior.SetNull);
-
             mdlBldr.Entity<Procedure>().HasData(prcdrsArr);
             mdlBldr.Entity<Substance>().HasData(sbstncsArr);
+            mdlBldr.Entity<Procedure>().HasNoDiscriminator();
+            mdlBldr.Entity<Substance>().HasNoDiscriminator();
             base.OnModelCreating(mdlBldr);
         }
     }

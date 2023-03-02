@@ -2,20 +2,21 @@
 using Microsoft.AspNetCore.Mvc;
 using Thss0.Web.Data;
 using Thss0.Web.Models.ViewModels;
+using Thss0.Web.Models;
 
 namespace Thss0.Web.Controllers
 {
     public class AccountController : Controller
     {
         private const string ERROR_TEXT = "Wrong name or password";
-        private readonly SignInManager<IdentityUser> _sgnInMngr;
-        private readonly UserManager<IdentityUser> _usrMngr;
-        public AccountController(SignInManager<IdentityUser> sgnInMngr, RoleManager<IdentityRole> rleMngr, ApplicationDbContext cntxt)
+        private readonly SignInManager<ApplicationUser> _sgnInMngr;
+        private readonly UserManager<ApplicationUser> _usrMngr;
+        public AccountController(SignInManager<ApplicationUser> sgnInMngr, RoleManager<IdentityRole> rleMngr, ApplicationDbContext cntxt)
         {
             _sgnInMngr = sgnInMngr;
             _usrMngr = sgnInMngr.UserManager;
             var prcdreToIntlze = cntxt.Procedures.FirstOrDefault();
-            IdentityUser usrToAd;
+            ApplicationUser usrToAd;
             if (!_usrMngr.Users.Any() && prcdreToIntlze != null)
             {
                 string[] usrAndRleNms = { "admin", "professional", "client" };
@@ -23,7 +24,7 @@ namespace Thss0.Web.Controllers
                 for (ushort i = 0; i < usrAndRleNms.Length; i++)
                 {
                     rleMngr.CreateAsync(new IdentityRole { Name = usrAndRleNms[i] }).Wait();
-                    usrToAd = new IdentityUser
+                    usrToAd = new ApplicationUser
                     {
                         UserName = usrAndRleNms[i],
                         PhoneNumber = usrAndRleNms[i],
@@ -58,7 +59,7 @@ namespace Thss0.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var usrToRgstr = new IdentityUser { Email = rgstrVwMdl.Name, UserName = rgstrVwMdl.Name };
+                var usrToRgstr = new ApplicationUser { Email = rgstrVwMdl.Name, UserName = rgstrVwMdl.Name };
                 var crteRslt = await _usrMngr.CreateAsync(usrToRgstr, rgstrVwMdl.Password);
                 if (crteRslt.Succeeded)
                 {

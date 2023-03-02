@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Models.ViewModels;
+using Thss0.Web.Models;
 
 namespace Thss0.Web.Controllers.API
 {
@@ -12,8 +13,8 @@ namespace Thss0.Web.Controllers.API
     //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class UsersController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _usrMngr;
-        public UsersController(UserManager<IdentityUser> usrMngr)
+        private readonly UserManager<ApplicationUser> _usrMngr;
+        public UsersController(UserManager<ApplicationUser> usrMngr)
         {
             _usrMngr = usrMngr;
         }
@@ -72,7 +73,7 @@ namespace Thss0.Web.Controllers.API
         {
             if (ModelState.IsValid)
             {
-                var usrToAdd = new IdentityUser
+                var usrToAdd = new ApplicationUser
                 {
                     UserName = user.Name,
                     PhoneNumber = user.PhoneNumber,

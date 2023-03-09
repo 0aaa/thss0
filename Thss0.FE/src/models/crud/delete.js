@@ -1,26 +1,24 @@
 import React from "react"
 import { connect } from "react-redux"
 import { useNavigate, useParams } from "react-router-dom"
-import API_URL from "../../config/consts"
-import { deleteRecord } from "../../actions/actions"
+import { updateState } from "../../actions/actions"
+import { getRecords } from "../../services/entity-service"
 
 class Delete extends React.Component {
     constructor(props) {
         super(props)
-        this.url = API_URL + props.params.entityName + '/' + props.params.id
+        this.path = props.params.entityName + '/' + props.params.id
         this.state = {
             content: []
         }
-        this.handleDelete = this.handleDelete.bind(this)
     }
     handleDelete(event) {
         event.preventDefault()
-        this.props.deleteRecord(this.url)
+        this.props.deleteRecord(this.path)
         this.props.navigate(-1)
     }
     async componentDidMount() {
-        const response = await fetch(this.url)
-        const content = await response.json()
+        const content = await getRecords(this.path)
         this.setState({ content })
     }
     render() {
@@ -51,7 +49,7 @@ function mapStateToProps(state) {
 }
 function mapDispatchToProps(dispatch) {
     return {
-        deleteRecord: (url) => dispatch(deleteRecord(url))
+        deleteRecord: (url) => dispatch(updateState(url))// Must be fixed.
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(DeleteRouter)

@@ -1,29 +1,19 @@
 import React from "react"
 import { connect } from "react-redux"
 import { useNavigate, useParams } from "react-router-dom"
-import API_URL from "../../config/consts"
-import { editRecord } from "../../actions/actions"
+import { updateState } from "../../actions/actions"
+import { editRecord, getRecords } from "../../services/entity-service"
 
 class Edit extends React.Component {
     constructor(props) {
         super(props)
-        this.url = API_URL + props.params.entityName + '/' + props.params.id
+        this.path = props.params.entityName + '/' + props.params.id
         this.state = {
             content: []
         }
-        this.handleEdit = this.handleEdit.bind(this)
-    }
-    handleEdit(event) {
-        event.preventDefault()
-        let formCollection = {};
-        [...event.target.elements].forEach((cntrl) => formCollection[cntrl.id] = cntrl.value)
-        delete formCollection['']
-        this.props.editRecord(this.url, formCollection)
-        this.props.navigate(-1)
     }
     async componentDidMount() {
-        const response = await fetch(this.url)
-        const content = await response.json()
+        const content = await getRecords(this.path)
         delete content['creationTime']                  // For the Procedure type only.
         this.setState({ content })
     }
@@ -31,7 +21,8 @@ class Edit extends React.Component {
         return (
             <>
                 <h5>Edit</h5>
-                <form onSubmit={this.handleEdit} className="w-50">
+                <form onSubmit={(event) => this.props.handleEdit(event, this.path, this.props.params.entityName, this.props.navigate)}
+                        className="w-50">
                     <table className="table">
                         <tbody>
                             {Object.keys(this.state.content).map(cntnt =>
@@ -57,16 +48,23 @@ class Edit extends React.Component {
         )
     }
 }
-function EditRouter(props) {
-    return <Edit {...props} params={useParams()} navigate={useNavigate()} />
-}
+const EditRouter = (props) => <Edit {...props} params={useParams()} navigate={useNavigate()} />
 
 function mapStateToProps(state) {
     return { content: state.content }
 }
 function mapDispatchToProps(dispatch) {
     return {
-        editRecord: (url, credentials) => dispatch(editRecord(url, credentials))
+        handleEdit: async (event, path, entityName, navigate) => {
+            event.preventDefault()
+            let formCollection = {};
+            [...event.target.elements].forEach((cntrl) => formCollection[cntrl.id] = cntrl.value)
+            delete formCollection['']
+            await editRecord(path, formCollection)
+            const data = getRecords(entityName)
+            dispatch(updateState(data))
+            navigate(-1)
+        }
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(EditRouter)

@@ -1,18 +1,19 @@
 import React from 'react'
+import { connect } from 'react-redux'
 import { NavLink, useParams } from 'react-router-dom'
-import API_URL from '../../config/consts'
+import { updateState } from "../../actions/actions"
+import { getRecords } from '../../services/entity-service'
 
 class List extends React.Component {
     constructor(props) {
         super(props)
-        this.url = API_URL + props.params.entityName + '/' + (props.params.roleIndex ?? '')
+        this.path = props.params.entityName + '/' + (props.params.roleIndex ?? '')
         this.state = {
             content: []
         }
     }
     async componentDidMount() {
-        const response = await fetch(this.url)
-        const content = await response.json()
+        const content = await getRecords(this.path)
         this.setState({ content })
     }
     render() {
@@ -48,7 +49,17 @@ class List extends React.Component {
         )
     }
 }
-function ListRouter(props) {
-    return <List {...props} params={useParams()} />
+const ListRouter = (props) => <List {...props} params={useParams()} />
+
+function mapStateToProps(state) {
+    return { content: state.content }
 }
-export default ListRouter
+function mapDispatchToProps(dispatch) {
+    return {
+        updateState: async (path) => {
+            const data = await getRecords(path)
+            dispatch(updateState(data))
+        }
+    }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(ListRouter)

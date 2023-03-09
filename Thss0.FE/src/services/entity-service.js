@@ -1,11 +1,17 @@
-import AUTH_TOKEN from "../config/consts"
+import {AUTH_TOKEN, API_URL} from "../config/consts"
 
-function addRecord(requestUrl, crdntlsDctnry) {
+async function getRecords(path) {
+    const response = await fetch(API_URL + path)
+    const data = await response.json()
+    return data
+}
+
+async function addRecord(path, crdntlsDctnry) {
     // For the Procedure type only.
-    // crdntlsDctnry['realizationTime'] = new Date(crdntlsDctnry['realizationTime'])
-    // crdntlsDctnry['nextProcedureTime'] = new Date(crdntlsDctnry['nextProcedureTime'])
+    crdntlsDctnry['realizationTime'] = new Date(crdntlsDctnry['realizationTime'])
+    crdntlsDctnry['nextProcedureTime'] = new Date(crdntlsDctnry['nextProcedureTime'])
     //
-    const fetchResult = fetch(requestUrl, {
+    const fetchResult = await fetch(API_URL + path, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -13,16 +19,16 @@ function addRecord(requestUrl, crdntlsDctnry) {
             'Authorization': `bearer ${sessionStorage.getItem(AUTH_TOKEN)}`
         },
         body: JSON.stringify(crdntlsDctnry)
-    }).then()
+    })
     if (fetchResult.ok) {
-        console.log(`${(fetchResult.json().then()).id} added`)
+        console.log(`${(fetchResult.json()).id} added`)
     } else {
         console.log('adding error')
     }
 }
 
-function editRecord(requestUrl, crdntlsDctnry) {
-    const fetchResult = fetch(requestUrl, {
+async function editRecord(path, crdntlsDctnry) {
+    const fetchResult = await fetch(API_URL + path, {
         method: 'PUT',
         headers: {
             'Accept': 'application/json',
@@ -30,7 +36,7 @@ function editRecord(requestUrl, crdntlsDctnry) {
             'Authorization': `bearer ${sessionStorage.getItem(AUTH_TOKEN)}`
         },
         body: JSON.stringify(crdntlsDctnry)
-    }).then()
+    })
     if (fetchResult.ok) {
         console.log(`edited ${crdntlsDctnry['id']}`)
     } else {
@@ -38,16 +44,16 @@ function editRecord(requestUrl, crdntlsDctnry) {
     }
 }
 
-function deleteRecord(requestUrl) {
-    const fetchResult = fetch(requestUrl, {
+async function deleteRecord(path) {
+    const fetchResult = await fetch(API_URL + path, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `bearer ${sessionStorage.getItem(AUTH_TOKEN)}`
         }
-    }).then()
+    })
     if (fetchResult.ok) {
-        console.log(`deleted ${requestUrl}`)
+        console.log(`deleted ${path}`)
     } else {
         // To adjust.
         /*document.getElementById('delete-error').innerHTML = ''
@@ -65,6 +71,7 @@ function deleteRecord(requestUrl) {
 }
 
 export {
+    getRecords,
     addRecord,
     editRecord,
     deleteRecord

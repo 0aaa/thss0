@@ -1,30 +1,28 @@
 import React from "react"
 import { connect } from "react-redux"
 import { useNavigate, useParams } from "react-router-dom"
-import API_URL from "../../config/consts"
-import { addRecord } from "../../actions/actions"
+import { updateState } from "../../actions/actions"
+import { addRecord } from "../../services/entity-service"
 
 class Add extends React.Component {
     constructor(props) {
         super(props)
-        this.url = API_URL + props.params.entityName
+        this.path = props.params.entityName
         this.state = {
             keys: []
         }
-        this.handleAdd = this.handleAdd.bind(this)
     }
     handleAdd(event) {
         event.preventDefault()
         let formCollection = {};
         [...event.target.elements].forEach(cntrl => formCollection[cntrl.id] = cntrl.value)
         delete formCollection['']
-        addRecord(this.url, formCollection)
+        addRecord(this.path, formCollection)
     }
     async componentDidMount() {
-        const response = await fetch(this.url)
-        const data = (await response.json())[0]
+        const data = (await getRecords(this.path))[0]
         delete data['id']
-        // delete data['creationTime']                     // For the Procedure type only.
+        delete data['creationTime']                     // For the Procedure type only.
         this.setState({ keys: Object.keys(data) })
     }
     render() {
@@ -63,7 +61,7 @@ function mapStateToProps(state) {
 }
 function mapDispatchToProps(dispatch) {
     return {
-        addRecord: (url, credentials) => dispatch(addRecord(url, credentials))
+        addRecord: (url, credentials) => dispatch(updateState(url, credentials))// Must be fixed.
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(AddRouter)

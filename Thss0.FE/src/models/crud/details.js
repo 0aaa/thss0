@@ -1,18 +1,17 @@
 import React from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import API_URL from "../../config/consts"
+import { getRecords } from "../../services/entity-service"
 
 class Details extends React.Component {
     constructor(props) {
         super(props)
-        this.url = API_URL + props.params.entityName + '/' + props.params.id
+        this.path = props.params.entityName + '/' + props.params.id
         this.state = {
             content: []
         }
     }
     async componentDidMount() {
-        const response = await fetch(this.url)
-        const content = await response.json()
+        const content = await getRecords(this.path)
         this.setState({ content })
     }
     render() {

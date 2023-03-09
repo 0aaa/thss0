@@ -1,25 +1,7 @@
-function addRecord(url, credentials) {
+function updateState(payload) {
     return {
-        type: 'addRecord',
-        url,
-        credentials
+        type: 'updateState',
+        payload
     }
 }
-function editRecord(url, credentials) {
-    return {
-        type: 'editRecord',
-        url,
-        credentials
-    }
-}
-function deleteRecord(url) {
-    return {
-        type: 'deleteRecord',
-        url
-    }
-}
-export {
-    addRecord,
-    editRecord,
-    deleteRecord
-}
+export { updateState }

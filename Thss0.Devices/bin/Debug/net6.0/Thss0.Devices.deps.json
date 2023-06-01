@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "Thss0.Devices/1.0.0": {
+        "runtime": {
+          "Thss0.Devices.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Thss0.Devices/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

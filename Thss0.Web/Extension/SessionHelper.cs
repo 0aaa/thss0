@@ -10,7 +10,7 @@ namespace Thss0.Web.Extensions
         public static GenType Deserialize<GenType>(this ISession session, string key)
         {
             string value = session.GetString(key) ?? "";
-            return JsonConvert.DeserializeObject<GenType>(value);
+            return JsonConvert.DeserializeObject<GenType>(value)!;
         }
     }
 }

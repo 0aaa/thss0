@@ -1,8 +1,8 @@
-import React from "react"
-import { connect } from "react-redux"
-import { useNavigate, useParams } from "react-router-dom"
-import { updateState } from "../../actions/actions"
-import { editRecord, getRecords } from "../../services/entity-service"
+import React from 'react'
+import { connect } from 'react-redux'
+import { useNavigate, useParams } from 'react-router-dom'
+import { updateContent } from '../../actionCreator/actionCreator'
+import { editRecord, getRecords } from '../../services/entities'
 
 class Edit extends React.Component {
     constructor(props) {
@@ -14,7 +14,10 @@ class Edit extends React.Component {
     }
     async componentDidMount() {
         const content = await getRecords(this.path)
-        delete content['creationTime']                  // For the Procedure type only.
+        delete content['creationTime']
+        delete content['department']
+        delete content['result']
+        delete content['user']
         this.setState({ content })
     }
     render() {
@@ -22,19 +25,20 @@ class Edit extends React.Component {
             <>
                 <h5>Edit</h5>
                 <form onSubmit={(event) => this.props.handleEdit(event, this.path, this.props.params.entityName, this.props.navigate)}
-                        className="w-50">
+                    className="w-50">
                     <table className="table">
                         <tbody>
-                            {Object.keys(this.state.content).map(cntnt =>
-                                <tr key={cntnt} className={`form-group ${cntnt === 'id' ? 'd-none' : ''}`}>
+                            {Object.keys(this.state.content).map(key =>
+                                <tr key={key} className={`form-group ${key === 'id' ? 'd-none' : ''}`}>
                                     <th>
-                                        <label htmlFor={cntnt} className="col-form-label">{cntnt}</label>
+                                        <label htmlFor={key} className="col-form-label">{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</label>
                                     </th>
                                     <td>
-                                        <span id={cntnt + '-error'} className="alert alert-danger d-none" />
-                                        <input type={cntnt.endsWith('Time') ? 'datetime-local' : 'text'}
-                                            id={cntnt}
-                                            defaultValue={this.state.content[cntnt].length > 0 ? this.state.content[cntnt] : 'Empty'}
+                                        <span id={key + '-error'} className="alert alert-danger d-none" />
+                                        <input type={key.endsWith('Time') ? 'datetime-local' : 'text'}
+                                            id={key}
+                                            defaultValue={this.state.content[key]}
+                                            placeholder={key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}
                                             className="form-control" />
                                     </td>
                                 </tr>
@@ -50,19 +54,19 @@ class Edit extends React.Component {
 }
 const EditRouter = (props) => <Edit {...props} params={useParams()} navigate={useNavigate()} />
 
-function mapStateToProps(state) {
-    return { content: state.content }
-}
-function mapDispatchToProps(dispatch) {
+const mapStateToProps = (state) => { return { content: state.content } }
+
+const mapDispatchToProps = (dispatch) => {
     return {
         handleEdit: async (event, path, entityName, navigate) => {
             event.preventDefault()
             let formCollection = {};
-            [...event.target.elements].forEach((cntrl) => formCollection[cntrl.id] = cntrl.value)
+            [...event.target.elements].forEach((element) => formCollection[element.id] = element.value)
             delete formCollection['']
+
             await editRecord(path, formCollection)
-            const data = getRecords(entityName)
-            dispatch(updateState(data))
+            const data = await getRecords(entityName)
+            dispatch(updateContent(data.content))
             navigate(-1)
         }
     }

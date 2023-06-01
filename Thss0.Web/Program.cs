@@ -13,21 +13,21 @@ namespace Thss0.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            var cnctnStr = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                                options.UseMySql(cnctnStr, ServerVersion.AutoDetect(cnctnStr)))
+                                options.UseLazyLoadingProxies()
+                                        .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")))
                             .AddDatabaseDeveloperPageExceptionFilter()
                             .AddIdentity<ApplicationUser, IdentityRole>()
                             .AddEntityFrameworkStores<ApplicationDbContext>();
-            /*builder.Services.AddAuthentication(optns =>
+            builder.Services.AddAuthentication(options =>
                             {
-                                optns.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                                optns.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                             })
-                            .AddJwtBearer(optns =>
+                            .AddJwtBearer(options =>
                             {
-                                optns.RequireHttpsMetadata = false;
-                                optns.TokenValidationParameters = new TokenValidationParameters
+                                options.RequireHttpsMetadata = false;
+                                options.TokenValidationParameters = new TokenValidationParameters
                                 {
                                     ValidateIssuer = true,
                                     ValidIssuer = AuthCredentials.ISSUER,
@@ -35,26 +35,24 @@ namespace Thss0.Web
                                     ValidAudience = AuthCredentials.AUDIENCE,
                                     ValidateLifetime = true,
                                     ValidateIssuerSigningKey = true,
-                                    IssuerSigningKey = AuthCredentials.GetKey()
+                                    IssuerSigningKey = AuthCredentials.GetSigningKey()
                                 };
-                            });*/
+                            });
             builder.Services.AddControllersWithViews();
-            //builder.Services.AddSession()
-            //                .AddRazorPages()
-            //                ;
+            builder.Services.AddSession();
 
             var app = builder.Build();
 
-            /*app.UseSession();
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error")
-                    .UseHsts();
-            }*/
+            app.UseSession();
+            //if (app.Environment.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //}
+            //else
+            //{
+            //    app.UseExceptionHandler("/Home/Error")
+            //        .UseHsts();
+            //}
             app
                 //.UseStatusCodePages("text/html", "404")
                 .UseDefaultFiles()
@@ -64,11 +62,11 @@ namespace Thss0.Web
                     bldr.WithOrigins("http://localhost:3000")
                         .WithHeaders("content-type", "authorization")
                         .WithMethods("GET", "PUT", "POST", "DELETE", "OPTIONS"))
-                //.UseHttpsRedirection()
+                .UseHttpsRedirection()
                 .UseRouting()
 
-                //.UseAuthentication()
-                //.UseAuthorization()
+                .UseAuthentication()
+                .UseAuthorization()
                 .UseEndpoints(cnfgrtn =>
                 {
                     cnfgrtn.MapControllerRoute(

@@ -1,55 +1,55 @@
-import { useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { AUTH_TOKEN, REGISTER_PATH } from "../config/consts"
+import API_URL, { AUTH_TOKEN } from '../config/consts'
+import { eraseErrors, handleErrors } from './errors'
+import { UseToast } from '../config/hook'
 
-async function makeRegister(event) {
-    const userInput = {
-        name: event.name,
-        email: event.email,
-        phoneNumber: event['phone-number'],
-        password: event.password,
-        passwordRepeat: event['password-repeat']
-    }
-    const fetchResult = await fetch('api/user/register', {
-        method: 'POST',
-        headers: {
+async function makeRegister(target) {
+    const fetchResult = await fetch(`${API_URL}user`, {
+        method: 'POST'
+        , headers: {
             'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userInput)
+        }
+        , body: JSON.stringify({
+            name: target.name
+            , email: target.email
+            , phoneNumber: target['phone-number']
+            , password: target.password
+            , passwordRepeat: target['password-repeat']
+        })
     })
-    console.log(`register: ${fetchResult.ok}`)
+    if (fetchResult.ok) {
+        eraseErrors()
+        UseToast('Registered')
+    } else {
+        handleErrors(fetchResult)
+    }
     return fetchResult.ok
 }
-async function getTokenAsync(event) {
-    const userInput = {
-        name: document.getElementById('name').value,
-        password: document.getElementById('password').value
-    }
-    const fetchResult = await fetch('api/user/token', {
-        method: 'POST',
-        headers: {
+
+async function getTokenAsync(target) {
+    const fetchResult = await fetch(`${API_URL}account/token`, {
+        method: 'POST'
+        , headers: {
             'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userInput)
+        }
+        , body: JSON.stringify({
+            username: target.name.value
+            , password: target.password.value
+        })
     })
-    const data = await fetchResult.json()
     if (fetchResult.ok) {
+        eraseErrors()
+        const data = await fetchResult.json()
         sessionStorage.setItem(AUTH_TOKEN, data.access_token)
-        return true
+        UseToast('Logged in')
+        return data
     } else {
-        sessionStorage.removeItem(AUTH_TOKEN)
-        alert(`Error: ${fetchResult.status}`)
-        return false
+        handleErrors(fetchResult)
+        UseToast(`Error: ${fetchResult.status}`)
+        return null
     }
 }
-function Logout() {
-    console.log('logout')
-    const navigate = useNavigate()
-    sessionStorage.removeItem(AUTH_TOKEN)
-    useEffect(() => navigate(REGISTER_PATH))
-}
+
 export {
-    makeRegister,
-    getTokenAsync,
-    Logout
+    makeRegister
+    , getTokenAsync
 }

@@ -1,22 +1,16 @@
-import { makeRegister } from '../../services/auth'
+import { getTokenAsync, makeRegister } from '../../services/auth'
 import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { REGISTER_PATH } from '../../config/consts'
+import { useNavigate, useParams } from 'react-router-dom'
+import { updateAuth } from '../../actionCreator/actionCreator'
+import { connect } from 'react-redux'
 
-async function HandleRegister(event) {
-    event.preventDefault()
-    const navigate = useNavigate()
-    if (!await makeRegister(event)) {
-        window.location.reload()
-    }
-    useEffect(() => navigate(REGISTER_PATH))
-}
 class Register extends React.Component {
     render() {
         return (
             <>
                 <h4>Register</h4>
-                <form onSubmit={HandleRegister} className="w-50">
+                <div id="register-error" className="alert alert-danger d-none"></div>
+                <form onSubmit={(event) => this.props.HandleRegister(event, this.props.effect)} className="w-25">
                     <input id="name" className="form-control" placeholder="Name" />
                     <input type="email" id="email" className="form-control mx-1" placeholder="Email" />
                     <input id="phone-number" className="form-control" placeholder="Phone number" />
@@ -28,4 +22,23 @@ class Register extends React.Component {
         )
     }
 }
-export default Register
+const RegisterRouter = (props) => <Register {...props} params={useParams()} />
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        HandleRegister: async (event, effect) => {
+            event.preventDefault()
+            if (!await makeRegister(event.target)) {
+                window.location.reload()
+            }
+            if (!await getTokenAsync(event)) {//
+                window.location.reload()
+            }
+            const navigate = useNavigate()
+            useEffect(() => navigate('/'))
+            effect()
+            dispatch(updateAuth())
+        }
+    }
+}
+export default connect(mapDispatchToProps)(RegisterRouter)

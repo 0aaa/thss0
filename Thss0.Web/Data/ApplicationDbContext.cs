@@ -6,40 +6,11 @@ namespace Thss0.Web.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public DbSet<Procedure> Procedures { get; set; }
-        public DbSet<Substance> Substances { get; set; }
+        public DbSet<Procedure> Procedures { get; set; } = null!;
+        public DbSet<Department> Departments { get; set; } = null!;
+        public DbSet<Result> Results { get; set; } = null!;
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
                 => Database.EnsureCreated();
-
-        protected override void OnModelCreating(ModelBuilder mdlBldr)
-        {
-            var tstVlsArr = new[] { "test" };
-            var prcdrsArr = new Procedure[tstVlsArr.Length];
-            var sbstncsArr = new Substance[tstVlsArr.Length];
-            for (ushort i = 0; i < tstVlsArr.Length; i++)
-            {
-                prcdrsArr[i] = new Procedure
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = tstVlsArr[i],
-                    Department = tstVlsArr[i],
-                    CreationTime = DateTime.Now,
-                    RealizationTime = DateTime.Now,
-                    NextProcedureTime = DateTime.Now,
-                    Result = tstVlsArr[i]
-                };
-                sbstncsArr[i] = new Substance
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = tstVlsArr[i]
-                };
-            }
-            mdlBldr.Entity<Procedure>().HasData(prcdrsArr);
-            mdlBldr.Entity<Substance>().HasData(sbstncsArr);
-            mdlBldr.Entity<Procedure>().HasNoDiscriminator();
-            mdlBldr.Entity<Substance>().HasNoDiscriminator();
-            base.OnModelCreating(mdlBldr);
-        }
     }
 }

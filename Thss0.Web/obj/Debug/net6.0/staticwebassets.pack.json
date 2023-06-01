@@ -1,10 +1,6 @@
 {
   "Files": [
     {
-      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\obj\\Debug\\net6.0\\scopedcss\\projectbundle\\Thss0.Web.bundle.scp.css",
-      "PackagePath": "staticwebassets\\Thss0.Web.bundle.scp.css"
-    },
-    {
       "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\css\\site.css",
       "PackagePath": "staticwebassets\\css\\site.css"
     },

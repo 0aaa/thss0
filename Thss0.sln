@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thss0.Web", "Thss0.Web\Thss0.Web.csproj", "{26994A6C-488D-40ED-A345-F5A19992DB97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Thss0.Web", "Thss0.Web\Thss0.Web.csproj", "{26994A6C-488D-40ED-A345-F5A19992DB97}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Thss0.Devices", "Thss0.Devices\Thss0.Devices.csproj", "{AC5AB53C-4B3A-451C-BC62-F64FBEEF3578}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{26994A6C-488D-40ED-A345-F5A19992DB97}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26994A6C-488D-40ED-A345-F5A19992DB97}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26994A6C-488D-40ED-A345-F5A19992DB97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC5AB53C-4B3A-451C-BC62-F64FBEEF3578}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC5AB53C-4B3A-451C-BC62-F64FBEEF3578}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC5AB53C-4B3A-451C-BC62-F64FBEEF3578}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC5AB53C-4B3A-451C-BC62-F64FBEEF3578}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

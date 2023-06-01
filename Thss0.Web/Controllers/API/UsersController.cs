@@ -3,95 +3,79 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Thss0.Web.Models.ViewModels;
 using Thss0.Web.Models;
+using Thss0.Web.Models.ViewModels.CRUD;
+using Thss0.Web.Extensions;
 
 namespace Thss0.Web.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public class UsersController : ControllerBase
+    // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public class UsersController : Controller
     {
-        private readonly UserManager<ApplicationUser> _usrMngr;
-        public UsersController(UserManager<ApplicationUser> usrMngr)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public UsersController(UserManager<ApplicationUser> userManager)
+            => _userManager = userManager;
+
+        [HttpGet("{role?}/{order:bool?}/{printBy:int?}/{page:int?}")]
+        public async Task<ActionResult<IEnumerable<UserViewModel>>> GetUsers(string role = "client", bool order = true, int printBy = 20, int page = 1)
         {
-            _usrMngr = usrMngr;
+            var users = await _userManager.GetUsersInRoleAsync(role);
+            if (!users.Any())
+            {
+                return NoContent();
+            }
+            return Json(new
+            {
+                content = (order ? users.OrderBy(u => u.UserName) : users.OrderByDescending(u => u.UserName))
+                                            .Skip((page - 1) * printBy).Take(printBy)
+                                            .Select(u => new UserViewModel { Id = u.Id, UserName = u.UserName })//.ToList()
+                , total_amount = users.Count
+            });
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<UserViewModel>> GetUser(string id)
         {
-            if (id == null || _usrMngr.Users == null)
+            if (id == null || _userManager.Users == null)
             {
                 return NotFound();
             }
-            var usrToGt = await _usrMngr.FindByIdAsync(id);
-            if (usrToGt == null)
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
             {
                 return NotFound();
             }
-            var usrToRtrn = new UserViewModel
-            {
-                Id = usrToGt.Id,
-                Name = usrToGt.UserName,
-                PhoneNumber = usrToGt.PhoneNumber,
-                Email = usrToGt.Email,
-                Role = _usrMngr.GetRolesAsync(usrToGt).Result.FirstOrDefault() ?? "No role"
-            };
-            return usrToRtrn;
-        }
-
-        [HttpGet("{roleIndex:int?}")]
-        public async Task<ActionResult<IEnumerable<UserViewModel>>> GetUsers(int roleIndex = 0)
-        {
-            string role = "";
-            switch (roleIndex)
-            {
-                case 0:
-                    role = "client";
-                    break;
-                case 1:
-                    role = "professional";
-                    break;
-                case 2:
-                    role = "admin";
-                    break;
-            }
-            return (await _usrMngr.GetUsersInRoleAsync(role)).Select(usr => new UserViewModel
-                {
-                    Id = usr.Id,
-                    Name = usr.UserName,
-                    PhoneNumber = usr.PhoneNumber,
-                    Email = usr.Email,
-                    Role = _usrMngr.GetRolesAsync(usr).Result.FirstOrDefault() ?? "No role"
-                }).ToList();
+            return await InitializeUser(user);
         }
 
         [HttpPost]
         public async Task<ActionResult<UserViewModel>> Post(UserViewModel user)
         {
+            new EntityInitializer().Validation(ModelState, user);
             if (ModelState.IsValid)
             {
-                var usrToAdd = new ApplicationUser
+                var userToAdd = new ApplicationUser
                 {
-                    UserName = user.Name,
-                    PhoneNumber = user.PhoneNumber,
-                    Email = user.Email
+                    UserName = user.UserName
+                    , PhoneNumber = user.PhoneNumber
+                    , Email = user.Email
                 };
-                var crteRslt = await _usrMngr.CreateAsync(usrToAdd, user.Password);
-                if (!crteRslt.Succeeded)
+                var result = await _userManager.CreateAsync(userToAdd, user.Password);
+                if (!result.Succeeded)
                 {
                     // for (int i = 0; i < crteRslt.Errors.Count; i++)
                     // {
-                        foreach (var err in crteRslt.Errors)
-                        {
-                            ModelState.AddModelError(err.Code, err.Description);
-                        }
+                    foreach (var err in result.Errors)
+                    {
+                        ModelState.AddModelError(err.Code, err.Description);
+                    }
                     // }
                     return BadRequest(ModelState);
                 }
-                await _usrMngr.AddToRoleAsync(usrToAdd, user.Role);
+                await _userManager.AddToRoleAsync(userToAdd, user.Role);
                 return Ok(user);
             }
             return BadRequest(ModelState);
@@ -108,17 +92,24 @@ namespace Thss0.Web.Controllers.API
             {
                 try
                 {
-                    var usrToUpdte = await _usrMngr.FindByIdAsync(id);
-                    if (usrToUpdte != null)
+                    var userToUpdate = await _userManager.FindByIdAsync(id);
+                    if (userToUpdate != null)
                     {
-                        usrToUpdte.UserName = user.Name;
-                        usrToUpdte.PasswordHash = _usrMngr.PasswordHasher.HashPassword(usrToUpdte, user.Password);
-                        usrToUpdte.PhoneNumber = user.PhoneNumber;
-                        usrToUpdte.Email = user.Email;
-                        var idnttyRslt = await _usrMngr.UpdateAsync(usrToUpdte);
-                        if (!idnttyRslt.Succeeded)
+                        var properties = typeof(UserViewModel).GetProperties().Where(p => !new[] { "Id", "Password" }.Contains(p.Name)).ToArray();
+                        for (ushort i = 0; i < properties.Length; i++)
                         {
-                            foreach (var err in idnttyRslt.Errors)
+                            properties[i].SetValue(userToUpdate, properties[i].GetValue(user));
+                        }
+                        userToUpdate.PasswordHash = _userManager.PasswordHasher.HashPassword(userToUpdate, user.Password);
+                        if (user.Role != "" && !await _userManager.IsInRoleAsync(userToUpdate, user.Role))
+                        {
+                            await _userManager.RemoveFromRoleAsync(userToUpdate, user.Role);
+                            await _userManager.AddToRoleAsync(userToUpdate, user.Role);
+                        }
+                        var result = await _userManager.UpdateAsync(userToUpdate);
+                        if (!result.Succeeded)
+                        {
+                            foreach (var err in result.Errors)
                             {
                                 ModelState.AddModelError(err.Code, err.Description);
                             }
@@ -126,13 +117,13 @@ namespace Thss0.Web.Controllers.API
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     if (!UserExists(user.Email))
                     {
                         return NotFound();
                     }
-                    throw;
+                    Console.WriteLine(e.Message);
                 }
                 return Ok(user);
             }
@@ -142,17 +133,17 @@ namespace Thss0.Web.Controllers.API
         [HttpDelete("{id}")]
         public async Task<ActionResult<UserViewModel>> Delete(string id)
         {
-            if (_usrMngr.Users == null)
+            if (_userManager.Users == null)
             {
                 return BadRequest(new { err = "Entity set 'dbo.AspNetUsers' is null." });
             }
-            var usrToDlte = await _usrMngr.FindByIdAsync(id);
-            if (usrToDlte != null)
+            var userToDelete = await _userManager.FindByIdAsync(id);
+            if (userToDelete != null)
             {
-                var dlteRslt = await _usrMngr.DeleteAsync(usrToDlte);
-                if (!dlteRslt.Succeeded)
+                var result = await _userManager.DeleteAsync(userToDelete);
+                if (!result.Succeeded)
                 {
-                    foreach (var err in dlteRslt.Errors)
+                    foreach (var err in result.Errors)
                     {
                         ModelState.AddModelError(err.Code, err.Description);
                     }
@@ -163,7 +154,49 @@ namespace Thss0.Web.Controllers.API
             return NotFound();
         }
 
+        private async Task<UserViewModel> InitializeUser(ApplicationUser source)
+        {
+            // var dest = new UserViewModel();
+            // var properties = new[] { "Id", "UserName", "PhoneNumber", "Email", "DoB", "PoB"};
+            // var sourceProperties = typeof(ApplicationUser).GetProperties()
+            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
+            // var destProperties = typeof(UserViewModel).GetProperties()
+            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
+            // for (ushort i = 0; i < properties.Length; i++)
+            // {
+            //     destProperties.FirstOrDefault(p => p.Name == properties[i])
+            //             ?.SetValue(dest, sourceProperties.FirstOrDefault(p => p.Name == properties[i])?.GetValue(source)?.ToString());
+            // }
+            var dest = (UserViewModel)new EntityInitializer().InitializeViewModel(source, new UserViewModel());
+            dest.Role = (await _userManager.GetRolesAsync(source)).FirstOrDefault() ?? "No role";
+            if (source.Procedure != null)
+            {
+                HandleProcedures(source, dest);
+            }
+            if (source.Result != null)
+            {
+                HandleResults(source, dest);
+            }
+            return dest;
+        }
+        private void HandleProcedures(ApplicationUser source, UserViewModel dest)
+        {
+            for (ushort i = 0; i < source.Procedure.Count; i++)
+            {
+                dest.Procedure += $"{source.Procedure.ElementAtOrDefault(i)?.Id}\n";
+                dest.ProcedureNames += $"{source.Procedure.ElementAtOrDefault(i)?.Name}\n";
+            }
+        }
+        private void HandleResults(ApplicationUser source, UserViewModel dest)
+        {
+            for (ushort i = 0; i < source.Procedure.Count; i++)
+            {
+                dest.Result += $"{source.Result.ElementAtOrDefault(i)?.Id}\n";
+                dest.ResultNames += $"{source.Result.ElementAtOrDefault(i)?.ObtainmentTime}\n";
+            }
+        }
+
         private bool UserExists(string email)
-            => _usrMngr.Users.Any(usr => usr.Email == email);
+            => _userManager.Users.Any(u => u.Email == email);
     }
 }

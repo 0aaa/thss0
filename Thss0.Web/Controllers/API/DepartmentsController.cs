@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Extensions;
-using Thss0.Web.Models;
+using Thss0.Web.Models.Entities;
 using Thss0.Web.Models.ViewModels.CRUD;
 
 namespace Thss0.Web.Controllers.API
@@ -130,20 +130,6 @@ namespace Thss0.Web.Controllers.API
 
         private async Task<Department> InitializeDepartment(DepartmentViewModel source, Department dest)
         {
-            // var properties = new[] { "Name" };
-            // var sourceProperties = typeof(DepartmentViewModel).GetProperties()
-            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
-            // var destProperties = typeof(Department).GetProperties()
-            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
-
-            // for (ushort i = 0; i < sourceProperties.Length; i++)
-            // {
-            //     if (sourceProperties[i].GetValue(source)?.ToString() != "")
-            //     {
-            //         destProperties.FirstOrDefault(p => p.Name == properties[i])?
-            //                 .SetValue(dest, sourceProperties.FirstOrDefault(p => p.Name == properties[i])?.GetValue(source));
-            //     }
-            // }
             new EntityInitializer().InitializeEntity(ModelState, source, dest);
             if (source.ProcedureNames != "")
             {
@@ -202,21 +188,6 @@ namespace Thss0.Web.Controllers.API
 
         private DepartmentViewModel InitializeDepartment(Department source)
         {
-            // var dest = new DepartmentViewModel();
-            // var properties = new[] { "Id", "Name" };
-            // var sourceProperties = typeof(Department).GetProperties()
-            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
-            // var destProperties = typeof(DepartmentViewModel).GetProperties()
-            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
-
-            // for (ushort i = 0; i < sourceProperties.Length; i++)
-            // {
-            //     if (sourceProperties[i].GetValue(source) != default)
-            //     {
-            //         destProperties.FirstOrDefault(p => p.Name == properties[i])?
-            //                 .SetValue(dest, sourceProperties.FirstOrDefault(p => p.Name == properties[i])?.GetValue(source));
-            //     }
-            // }
             var dest = (DepartmentViewModel)new EntityInitializer().InitializeViewModel(source, new DepartmentViewModel());
             if (source.Procedure != null)
             {

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Thss0.Web.Config;
 using Thss0.Web.Data;
-using Thss0.Web.Models;
+using Thss0.Web.Models.Entities;
 
 namespace Thss0.Web
 {
@@ -74,7 +74,6 @@ namespace Thss0.Web
                         pattern: "api/{controller=Home}/{action=Index}");
                     cnfgrtn.MapControllers();
                 });
-            //app.MapRazorPages();
 
             app.Run();
         }

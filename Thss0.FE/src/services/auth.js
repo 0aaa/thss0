@@ -1,6 +1,6 @@
-import API_URL, { AUTH_TOKEN } from '../config/consts'
+import API_URL, { AUTH_TOKEN, USERNAME } from '../config/consts'
 import { eraseErrors, handleErrors } from './errors'
-import { UseToast } from '../config/hook'
+import { UseToast } from '../config/hooks'
 
 async function makeRegister(target) {
     const fetchResult = await fetch(`${API_URL}user`, {
@@ -32,14 +32,15 @@ async function getTokenAsync(target) {
             'Content-Type': 'application/json'
         }
         , body: JSON.stringify({
-            username: target.name.value
-            , password: target.password.value
+            username: target['login-name'].value
+            , password: target['login-password'].value
         })
     })
     if (fetchResult.ok) {
         eraseErrors()
         const data = await fetchResult.json()
         sessionStorage.setItem(AUTH_TOKEN, data.access_token)
+        sessionStorage.setItem(USERNAME, data.username)
         UseToast('Logged in')
         return data
     } else {

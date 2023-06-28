@@ -1,9 +1,10 @@
-function updateContent(content, totalPages, localOrder) {
+function updateContent(content, totalPages, localOrder, currentPage) {
     return {
         type: 'updateContent'
         , content
         , totalPages
         , localOrder
+        , currentPage
     }
 }
 function updateAuth(username = null) {

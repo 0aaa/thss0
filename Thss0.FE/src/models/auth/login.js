@@ -6,13 +6,27 @@ import { getTokenAsync } from '../../services/auth'
 const Login = (props) => {
     return (
         <>
-            <h5>Login</h5>
             <div id="400-error" className="alert alert-danger d-none"></div>
-            <form onSubmit={(event) => props.UpdateAuth(event)} className="w-25">
-                <input id="name" className="form-control" placeholder="Name" />
-                <input type="password" id="password" className="form-control mx-1" placeholder="Password" />
-                <input type="submit" value="Submit" className="btn btn-outline-primary" />
-            </form>
+            <div className="modal fade" id="loginModal" tabIndex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h1 className="modal-title fs-5" id="loginModalLabel">Login</h1>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form onSubmit={(event) => props.UpdateAuth(event)}>
+                            <div className="modal-body">
+                                <input id="login-name" className="form-control border-0 border-bottom rounded-0" placeholder="Name" />
+                                <input type="password" id="login-password" className="form-control my-1 border-0 border-bottom rounded-0" placeholder="Password" />
+                            </div>
+                            <div className="modal-footer btn-group">
+                                <button type="button" className="btn btn-outline-dark border-0 border-bottom rounded-0" data-bs-dismiss="modal">Close</button>
+                                <input type="submit" data-bs-dismiss="modal" value="Submit" className="btn btn-outline-dark border-0 border-bottom rounded-0" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </>
     )
 }

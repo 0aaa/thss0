@@ -3,7 +3,6 @@ import appStore from './store/store'
 import { Provider } from 'react-redux'
 import Navigation from './models/navigation'
 import { BrowserRouter } from 'react-router-dom'
-import { toastsArr } from './config/consts'
 
 ReactDOM.createRoot(document.getElementById('root'))
   .render(
@@ -11,6 +10,5 @@ ReactDOM.createRoot(document.getElementById('root'))
       <BrowserRouter>
         <Navigation />
       </BrowserRouter>
-      {toastsArr}
     </Provider>
   )

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Thss0.Web.Models
+namespace Thss0.Web.Models.Entities
 {
     public class Result
     {

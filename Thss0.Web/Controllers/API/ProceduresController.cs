@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Extensions;
-using Thss0.Web.Models;
+using Thss0.Web.Models.Entities;
 using Thss0.Web.Models.ViewModels.CRUD;
 
 namespace Thss0.Web.Controllers.API
@@ -51,7 +51,7 @@ namespace Thss0.Web.Controllers.API
             {
                 return NotFound();
             }
-            return InitializeProcedure(source);
+            return await InitializeProcedure(source);
         }
 
         [HttpPost]
@@ -152,29 +152,6 @@ namespace Thss0.Web.Controllers.API
 
         private async Task<Procedure> InitializeProcedure(ProcedureViewModel source, Procedure dest)
         {
-            // var properties = new[] { "Name", "RealizationTime", "NextProcedureTime" };
-            // var sourceProperties = typeof(ProcedureViewModel).GetProperties()
-            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
-            // var destProperties = typeof(Procedure).GetProperties()
-            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
-
-            // for (ushort i = 0; i < properties.Length; i++)
-            // {
-            //     if (sourceProperties[i].GetValue(source)?.ToString() != "")
-            //     {
-            //         if (destProperties[i].PropertyType.Name == "DateTime")
-            //         {
-            //             destProperties.FirstOrDefault(p => p.Name == properties[i])
-            //                     ?.SetValue(dest, DateTime.Parse(sourceProperties.FirstOrDefault(p => p.Name == properties[i])
-            //                                                             ?.GetValue(source)?.ToString() ?? "0"));
-            //         }
-            //         else
-            //         {
-            //             destProperties.FirstOrDefault(p => p.Name == properties[i])
-            //                     ?.SetValue(dest, sourceProperties.FirstOrDefault(p => p.Name == properties[i])?.GetValue(source));
-            //         }
-            //     }
-            // }
             new EntityInitializer().InitializeEntity(ModelState, source, dest);
             if (source.DepartmentNames != "")
             {
@@ -252,37 +229,23 @@ namespace Thss0.Web.Controllers.API
         {
             var substancesCtrl = new SubstancesController(_context);
             var brandNames = source.Substance.Split().Distinct();
-            ActionResult<string> res;
+            ActionResult<SubstanceViewModel> res;
             for (ushort i = 0; i < brandNames.Count(); i++)
             {
-                res = await substancesCtrl.GetSubstance(brandNames.ElementAt(i), false);
+                // res = await substancesCtrl.GetSubstance(brandNames.ElementAt(i), false);
+                res = await substancesCtrl.GetSubstance(brandNames.ElementAt(i));
                 if (res.Value != null)
                 {
                     dest.Substance.Add(new Substance
                     {
-                        Id = res.Value
+                        Id = res.Value.Id
                     });
                 }
             }
         }
 
-        private ProcedureViewModel InitializeProcedure(Procedure source)
+        private async Task<ProcedureViewModel> InitializeProcedure(Procedure source)
         {
-            // var dest = new ProcedureViewModel();
-            // var properties = new[] { "Id", "Name", "CreationTime", "RealizationTime", "NextProcedureTime" };
-            // var sourceProperties = typeof(Procedure).GetProperties()
-            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
-            // var destProperties = typeof(ProcedureViewModel).GetProperties()
-            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
-            // for (ushort i = 0; i < properties.Length; i++)
-            // {
-            //     var value = sourceProperties[i].GetValue(source)?.ToString();
-            //     if (value != default && value != default(DateTime).ToString())
-            //     {
-            //         destProperties.FirstOrDefault(p => p.Name == properties[i])
-            //                 ?.SetValue(dest, sourceProperties.FirstOrDefault(p => p.Name == properties[i])?.GetValue(source)?.ToString());
-            //     }
-            // }
             var dest = (ProcedureViewModel)new EntityInitializer().InitializeViewModel(source, new ProcedureViewModel());
             if (source.Department != default)
             {
@@ -300,7 +263,7 @@ namespace Thss0.Web.Controllers.API
             }
             if (source.Substance.Any())
             {
-                HandleSubstances(source, dest);
+                await HandleSubstances(source, dest);
             }
             return dest;
         }
@@ -313,12 +276,21 @@ namespace Thss0.Web.Controllers.API
                 dest.UserNames += $"{users.ElementAtOrDefault(i)?.UserName}\n";
             }
         }
-        private async void HandleSubstances(Procedure source, ProcedureViewModel dest)
+        private async Task HandleSubstances(Procedure source, ProcedureViewModel dest)
         {
-            var res = (await new SubstancesController(_context).GetSubstances(source.Id)).Value;
-            if (res != null)
+            // var res = (await new SubstancesController(_context).GetSubstances(source.Id)).Value;
+            // if (res != null)
+            // {
+            //     dest.Substance = res;
+            // }
+            var substances = source.Substance;
+            var controller = new SubstancesController(_context);
+            SubstanceViewModel substance;
+            for (int i = 0; i < substances.Count; i++)
             {
-                dest.Substance = res;
+                substance = (await controller.GetSubstance(substances.ElementAtOrDefault(i)?.Id ?? "")).Value!;
+                dest.Substance += $"{substance.Id}\n";
+                dest.SubstanceNames += $"{substance.Name}\n";
             }
         }
 

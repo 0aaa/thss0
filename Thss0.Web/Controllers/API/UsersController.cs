@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Thss0.Web.Models;
 using Thss0.Web.Models.ViewModels.CRUD;
 using Thss0.Web.Extensions;
+using Thss0.Web.Models.Entities;
 
 namespace Thss0.Web.Controllers.API
 {
@@ -31,7 +31,7 @@ namespace Thss0.Web.Controllers.API
             {
                 content = (order ? users.OrderBy(u => u.UserName) : users.OrderByDescending(u => u.UserName))
                                             .Skip((page - 1) * printBy).Take(printBy)
-                                            .Select(u => new UserViewModel { Id = u.Id, UserName = u.UserName })//.ToList()
+                                            .Select(u => new UserViewModel { Id = u.Id, UserName = u.UserName })
                 , total_amount = users.Count
             });
         }
@@ -156,17 +156,6 @@ namespace Thss0.Web.Controllers.API
 
         private async Task<UserViewModel> InitializeUser(ApplicationUser source)
         {
-            // var dest = new UserViewModel();
-            // var properties = new[] { "Id", "UserName", "PhoneNumber", "Email", "DoB", "PoB"};
-            // var sourceProperties = typeof(ApplicationUser).GetProperties()
-            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
-            // var destProperties = typeof(UserViewModel).GetProperties()
-            //                                 .Where(p => properties.Contains(p.Name)).ToArray();
-            // for (ushort i = 0; i < properties.Length; i++)
-            // {
-            //     destProperties.FirstOrDefault(p => p.Name == properties[i])
-            //             ?.SetValue(dest, sourceProperties.FirstOrDefault(p => p.Name == properties[i])?.GetValue(source)?.ToString());
-            // }
             var dest = (UserViewModel)new EntityInitializer().InitializeViewModel(source, new UserViewModel());
             dest.Role = (await _userManager.GetRolesAsync(source)).FirstOrDefault() ?? "No role";
             if (source.Procedure != null)

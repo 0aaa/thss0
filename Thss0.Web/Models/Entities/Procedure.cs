@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Thss0.Web.Models
+namespace Thss0.Web.Models.Entities
 {
     public class Procedure
     {

@@ -1,12 +1,12 @@
 import { AUTH_TOKEN, API_URL } from '../config/consts'
-import { UseToast } from '../config/hook'
+import { UseToast } from '../config/hooks'
 import { eraseErrors, handleErrors } from './errors'
 
 async function getRecords(path, globalOrder, printBy, currentPage) {
-    globalOrder = globalOrder ? '/' + globalOrder : ''
-    printBy = printBy ? '/' + printBy : ''
-    currentPage = currentPage ? '/' + currentPage : ''
-    console.log(API_URL + path + globalOrder + printBy + currentPage)
+    globalOrder = globalOrder ? `/${globalOrder}` : ''
+    printBy = printBy ? `/${printBy}` : ''
+    currentPage = currentPage ? `/${currentPage}` : ''
+    path += path === 'users' ? '/client' : ''
     const fetchResult = await fetch(API_URL + path + globalOrder + printBy + currentPage)
     if (fetchResult.ok) {
         const data = await fetchResult.json()

@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Thss0.Web.Data;
-using Thss0.Web.Models;
+using Thss0.Web.Models.Entities;
 using Thss0.Web.Models.ViewModels.CRUD;
 
 namespace Thss0.Web.Controllers.API
@@ -31,54 +32,71 @@ namespace Thss0.Web.Controllers.API
             switch (entityName)
             {
                 case "departments":
-                    var departments = _context.Departments.Where(d => d.Name != null && d.Name.Contains(toFind));
-                    var adjustedDepartments = await (order ? departments.OrderBy(d => d.Name) : departments.OrderByDescending(d => d.Name))
-                                                            .Skip((page - 1) * printBy).Take(printBy).ToListAsync();
+                case "departmentNames":
+                    var departments = await _context.Departments.Where(d => d.Name != null && d.Name.Contains(toFind)).ToListAsync();
+                    var adjustedDepartments = (order ? departments.OrderBy(d => d.Name) : departments.OrderByDescending(d => d.Name))
+                                                    .Skip((page - 1) * printBy).Take(printBy)
+                                                    .Select(d => new DepartmentViewModel { Id = d.Id, Name = d.Name });
                     json = new
                     {
-                        content = adjustedDepartments,
-                        total_amount = adjustedDepartments.Count
+                        content = adjustedDepartments
+                        , total_amount = adjustedDepartments.Count()
                     };
                     break;
                 case "clients":
                 case "professionals":
-                case "users"://
+                case "users":
+                case "userNames":
                     var properties = new[] { "Id", "UserName", "PhoneNumber", "Email", "DoB", "PoB"};
-                    var destProperties = typeof(UserViewModel).GetProperties().Where(p => properties.Contains(p.Name)).ToArray();
-                    var users = await _userManager.Users.Where(u => FindByString(u, destProperties, toFind)).ToListAsync();
+                    var sourceProperties = typeof(ApplicationUser).GetProperties().Where(p => properties.Contains(p.Name)).ToArray();
+                    var users = new List<ApplicationUser>();
+                    if (entityName == "professionals" || entityName == "clients")
+                    {
+                        users = (await _userManager.GetUsersInRoleAsync(Regex.Replace(entityName, ".$", ""))).ToList();
+                    }
+                    else
+                    {
+                        users = await _userManager.Users.ToListAsync();
+                    }
+                    users = users.Where(u => FindByString(u, sourceProperties, toFind)).ToList();
                     var adjustedUsers = (order ? users.OrderBy(u => u.UserName) : users.OrderByDescending(u => u.UserName))
-                                                            .Skip((page - 1) * printBy).Take(printBy)
-                                                            .Select(u => InitializeUser(u, properties, destProperties).Result);
+                                            .Skip((page - 1) * printBy).Take(printBy)
+                                            .Select(u => new UserViewModel { Id = u.Id, UserName = u.UserName });
                     json = new
                     {
-                        content = adjustedUsers,
-                        total_amount = adjustedUsers.Count()
+                        content = adjustedUsers
+                        , total_amount = adjustedUsers.Count()
                     };
                     break;
                 case "procedures":
-                    var procedures = _context.Procedures.Where(p => p.Name != null && p.Name.Contains(toFind));
-                    var adjustedProcedures = await (order ? procedures.OrderBy(p => p.Name) : procedures.OrderByDescending(p => p.Name))
-                                                            .Skip((page - 1) * printBy).Take(printBy).ToListAsync();
+                case "procedureNames":
+                    var procedures = await _context.Procedures.Where(p => p.Name != null && p.Name.Contains(toFind)).ToListAsync();
+                    var adjustedProcedures = (order ? procedures.OrderBy(p => p.Name) : procedures.OrderByDescending(p => p.Name))
+                                            .Skip((page - 1) * printBy).Take(printBy)
+                                            .Select(p => new ProcedureViewModel { Id = p.Id, Name = p.Name });
                     json = new
                     {
-                        content = adjustedProcedures,
-                        total_amount = adjustedProcedures.Count
+                        content = adjustedProcedures
+                        , total_amount = adjustedProcedures.Count()
                     };
                     break;
                 case "results":
-                    var results = _context.Results.Where(r => r.Content != null && r.Content.Contains(toFind));
-                    var adjustedResults = await (order ? results.OrderBy(r => r.ObtainmentTime) : results.OrderByDescending(r => r.ObtainmentTime))
-                                                        .Skip((page - 1) * printBy).Take(printBy).ToListAsync();
+                case "resultNames":
+                    var results = await _context.Results.Where(r => r.Content != null && r.Content.Contains(toFind)).ToListAsync();
+                    var adjustedResults = (order ? results.OrderBy(r => r.ObtainmentTime) : results.OrderByDescending(r => r.ObtainmentTime))
+                                                .Skip((page - 1) * printBy).Take(printBy)
+                                                .Select(r => new ResultViewModel { Id = r.Id, ObtainmentTime = r.ObtainmentTime.ToString(), Content = r.Content });
                     json = new
                     {
-                        content = adjustedResults,
-                        total_amount = adjustedResults.Count
+                        content = adjustedResults
+                        , total_amount = adjustedResults.Count()
                     };
                     break;
                 case "substances":
+                case "substanceNames":
                     json = new
                     {
-                        content = await new SubstancesController(_context).GetSubstance(toFind)
+                        content = await new SubstancesController(_context).GetSubstance(toFind, false)
                     };
                     break;
                 default:
@@ -87,31 +105,18 @@ namespace Thss0.Web.Controllers.API
             return Json(json);
         }
 
-        private bool FindByString(ApplicationUser source, PropertyInfo[] destProperties, string toFind)
+        private bool FindByString(ApplicationUser source, PropertyInfo[] sourceProperties, string toFind)
         {
-            object? value;
-            for (ushort i = 0; i < destProperties.Length; i++)
+            string value;
+            for (ushort i = 0; i < sourceProperties.Length; i++)
             {
-                value = destProperties[i].GetValue(source);
-                if (value != null && ((string)value).Contains(toFind))
+                value = sourceProperties[i].GetValue(source)?.ToString() ?? "";
+                if (value != "" && value.Contains(toFind))
                 {
                     return true;
                 }
             }
             return false;
-        }
-
-        private async Task<UserViewModel> InitializeUser(ApplicationUser source, string[] properties, PropertyInfo[] destProperties)
-        {
-            var sourceProperties = typeof(ApplicationUser).GetProperties().Where(p => properties.Contains(p.Name)).ToArray();
-            var dest = new UserViewModel();
-            for (ushort i = 0; i < destProperties.Length; i++)
-            {
-                destProperties.First(p => p.Name == properties[i])
-                        .SetValue(dest, destProperties.First(p => p.Name == properties[i]).GetValue(source));
-            }
-            dest.Role = (await _userManager.GetRolesAsync(source)).FirstOrDefault() ?? "No role";
-            return dest;
         }
     }
 }

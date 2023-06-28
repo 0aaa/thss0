@@ -1,9 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-.vs
+/.vs
 /Thss0.Web/vscode
-/node_modules
+/Thss0.Devices/vscode
 /Thss0.Web/wwwroot/js/thss0.fe/node_modules
 /Thss0.FE/node_modules
 /3l0.0

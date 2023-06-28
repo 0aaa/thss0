@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
-using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Thss0.Web.Models.ViewModels.CRUD;
+using System.Text;
 
 namespace Thss0.Web.Controllers.API
 {
@@ -11,161 +11,89 @@ namespace Thss0.Web.Controllers.API
     // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
     public class DevicesController : Controller
     {
-        private static readonly string[] _deviceNames = { "ECG", "EEG" };
-        private static ushort _dataMax = 0;
-        private const string LOCALHOST = "127.0.0.1";
-        private const string USERNAME = "admin";
-        private const string PASSWORD = "admin";
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Device>>> GetDevices()// Return the data on the devices names and theirs readinesses.
+        private ushort _dataMax = 0;
+
+        [HttpGet("{order:bool?}/{printBy:int?}/{page:int?}")]
+        public async Task<ActionResult<IEnumerable<ProcedureViewModel>>> GetDevices(bool order = true, int printBy = 20, int page = 1)
         {
             _dataMax = 0;
-            const ushort port = 25545;
-            // const ushort dataMax = 1;
-            var server = new TcpListener(new IPEndPoint(IPAddress.Parse(LOCALHOST), port));
-            // var closeSerializer = new XmlSerializer(typeof(object));
-            server.Start();
-            Console.WriteLine("the server launch");
-            // var clients = new TcpClient[_devices.Length];
+            string[] deviceNames = { "ECG", "X-Ray", "MRI", "CT", "UA", "EEG" };
             var devices = new List<Device>();
-            for (int i = 0; i < _deviceNames.Length; i++)
+            for (int i = 0; i < deviceNames.Length; i++)
             {
-                devices.Add(new Device { Name = _deviceNames[i] });
-                await Server(server, devices[i]);// Some "for" for the check of the devices availabilities.
-
-                // clients[i] = server.AcceptTcpClient();
-                // Console.WriteLine($"{DateTime.Now.ToShortTimeString()}\t{clients[i].Client.RemoteEndPoint}");
-                // Task.Run(() =>
-                // {
-                //     HandleClient(dataMax, clients[i]);
-                // });
-                // fullServerSerializer.Serialize(clients[i].GetStream(), "503");// Or wait for the data reception.
-                // clients[i].Close();
+                devices.Add(new Device { Name = deviceNames[i] });
+                await Client(devices[i]);
             }
             return Json(new
             {
                 content = devices
-                ,
-                total_amount = devices.Count
+                , total_amount = devices.Count
             });
         }
-        [HttpGet("id")]
-        public async Task<ActionResult<Device>> GetDevice(string id)// Return the content data on the ready and selected device.
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Device>> GetDevice(string id)
         {
-            // Some "AcceptTcpClient" on the ready and selected device.
             _dataMax = 1;
-            const ushort port = 25545;
-            var server = new TcpListener(new IPEndPoint(IPAddress.Parse(LOCALHOST), port));
             var device = new Device { Name = id };
-            server.Start();
-            Console.WriteLine("the server launch");
-            await Server(server, device);
+            await Client(device);
             return device;
         }
-        private static async Task Server(TcpListener server, Device device)
-        {
-            // const string localhost = "127.0.0.1";
-            // const ushort port = 25545;
-            // const ushort dataMax = 1;
-            // var server = new TcpListener(new IPEndPoint(IPAddress.Parse(localhost), port));
-            // var fullServerSerializer = new XmlSerializer(typeof(object));
-            // ushort clientsCount = 0;
-            // server.Start();
-            // Console.WriteLine("the server launch");
-            // while (true)
-            // {
-            try
-            {
-                var serializer = new XmlSerializer(typeof(object));
-                var client = server.AcceptTcpClient();
-                // if (clientsCount < _devices.Length)
-                // {
-                //     clientsCount++;
-                Console.WriteLine($"{DateTime.Now.ToShortTimeString()}\t{client.Client.RemoteEndPoint}");
-                await Task.Run(() =>
-                {
-                    serializer.Serialize(client.GetStream(), "100");// "Continue".
 
-                    HandleClient(client, serializer, device);
-                    // clientsCount--;
-                    serializer.Serialize(client.GetStream(), "226");// "IM Used".
-                    Console.WriteLine($"{DateTime.Now.ToShortTimeString()}\tdisconnected\t{client.Client.RemoteEndPoint}");
-                    client.Close();
-                });
-            }
-            catch (System.Exception e)
-            {
-                System.Console.WriteLine(e.Message);
-            }
-            //     }
-            //     else
-            //     {
-            //         closeSerializer.Serialize(client.GetStream(), "503");
-            //         client.Close();
-            //     }
-            // }
-        }
-        private static void HandleClient(TcpClient client, XmlSerializer serializer, Device device)
+        private async Task Client(Device device)
         {
-            // const ushort attemptsMax = 3;
-            // var serializer = new XmlSerializer(typeof(object));
-            // var receivedData = "";
+            const string localhost = "127.0.0.1";
+            const ushort port = 25545;
+            const string username = "admin";
+            const string password = "admin";
+            var client = new TcpClient();
+            var buffer = new byte[1024];
             try
             {
-                string dataBuffer;
-                var authCredentials = new[] { new { username = USERNAME, password = PASSWORD } };
-                string? input, password;
-                // ushort attempts = 0;
-                ushort dataCount = 0;
-                // serializer.Serialize(client.GetStream(), "200");
-                // while (attempts < attemptsMax)
-                // {
-                input = serializer.Deserialize(client.GetStream())?.ToString();
-                password = serializer.Deserialize(client.GetStream())?.ToString();
-                if (input == "226"/* || input == null || password == null*/)// "IM Used".
+                await client.ConnectAsync(new IPEndPoint(IPAddress.Parse(localhost), port));
+            }
+            catch (SocketException e)
+            {
+                Console.WriteLine(e.Message);
+                return;
+            }
+            string answer = Encoding.Default.GetString(buffer.Take(await client.GetStream().ReadAsync(buffer)).ToArray());
+            if (answer != "100")// "Continue".
+            {
+                device.Content = answer;
+            }
+            else
+            {
+                await client.GetStream().WriteAsync(Encoding.UTF8.GetBytes($"{username}\t{password}"));
+                SendRequest(client, device);
+            }
+        }
+        private async void SendRequest(TcpClient client, Device device)
+        {
+            var buffer = new byte[1024];
+            if (Encoding.Default.GetString(buffer.Take(await client.GetStream().ReadAsync(buffer)).ToArray()) != "200")// "OK".
+            {
+                return;
+            }
+            device.Availability = true;
+            await client.GetStream().WriteAsync(Encoding.UTF8.GetBytes(_dataMax.ToString()));
+            if (_dataMax > 0)
+            {
+                string[] exitCodes = { "429", "401", "226", "503" };// "Too Many Requests", "Unauthorized", "IM Used", "Service Unavailable".
+                while (!exitCodes.Contains(string.Join("", device.Content.TakeLast(3).ToArray())))
                 {
-                    // break;
-                    return;
-                }
-                if (authCredentials.Any(a => a.username == input && a.password == password))
-                {
-                    serializer.Serialize(client.GetStream(), "200");// "OK".
-                    device.Availability = true;
-                    while (dataCount < _dataMax)
+                    try
                     {
-                        if (serializer.Deserialize(client.GetStream())?.ToString() == "data"/* && dataCount!= _dataMax - 1*/)
-                        {
-                            dataCount++;
-                            dataBuffer = serializer.Deserialize(client.GetStream())?.ToString() ?? "";
-                            // receivedData = dataBuffer;
-                            device.Content += dataBuffer;
-                            Console.WriteLine($"{dataBuffer}\t200");// "OK".
-                        }
-                        else
-                        {
-                            // attempts = attemptsMax;
-                            break;
-                        }
+                        client.GetStream().Write(Encoding.UTF8.GetBytes("100"));// "Continue" - get data.
+                        device.Content += Encoding.Default.GetString(buffer.Take(client.GetStream().Read(buffer)).ToArray());
+                    }
+                    catch (IOException e)
+                    {
+                        device.Content = e.Message;
                     }
                 }
-                else
-                {
-                    // attempts++;
-                    // if (attempts < attemptsMax)
-                    // {
-                    //     serializer.Serialize(client.GetStream(), "401");// "Unauthorized".
-                    // }
-                    serializer.Serialize(client.GetStream(), "401");// "Unauthorized".
-                }
+                device.Content = string.Join("", device.Content.Take(device.Content.Length - 3).ToArray());
             }
-            catch (System.Exception e)
-            {
-                System.Console.WriteLine(e.Message);
-            }
-            // }
-            // serializer.Serialize(client.GetStream(), "429");
-            // Console.WriteLine($"{DateTime.Now.ToShortTimeString()}\tdisconnected\t{client.Client.RemoteEndPoint}");
-            // client.Close();
         }
     }
 }

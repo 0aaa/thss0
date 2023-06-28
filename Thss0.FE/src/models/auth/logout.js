@@ -1,18 +1,10 @@
-import { connect } from 'react-redux'
-import { updateAuth } from '../../actionCreator/actionCreator'
-import { AUTH_TOKEN, LOGIN_PATH } from '../../config/consts'
-import { UseRedirect, UseToast } from '../../config/hook'
+import { AUTH_TOKEN, HOME_PATH, USERNAME } from '../../config/consts'
+import { UseRedirect, UseToast } from '../../config/hooks'
 
-const Logout = (props) => {
-    props.updateAuth()
-    console.log('logout')
+const Logout = () => {
     sessionStorage.removeItem(AUTH_TOKEN)
-    UseRedirect(LOGIN_PATH)
+    sessionStorage.removeItem(USERNAME)
     UseToast('Logged out')
+    UseRedirect(HOME_PATH)
 }
-const mapDispatchToProps = (dispatch) => {
-    return {
-        updateAuth: () => dispatch(updateAuth())
-    }
-}
-export default connect(null, mapDispatchToProps)(Logout)
+export default Logout

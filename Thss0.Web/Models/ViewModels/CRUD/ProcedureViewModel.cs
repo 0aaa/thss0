@@ -11,9 +11,10 @@
         public string Department { get; set; } = "";
         public string User { get; set; } = "";
         public string Result { get; set; } = "";
+        public string Substance { get; set; } = "";
         public string DepartmentNames { get; set; } = "";
         public string UserNames { get; set; } = "";
         public string ResultNames { get; set; } = "";
-        public string Substance { get; set; } = "";
+        public string SubstanceNames { get; set; } = "";
     }
 }

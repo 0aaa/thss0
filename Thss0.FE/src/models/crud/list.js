@@ -1,14 +1,16 @@
 import React, { Children } from 'react'
 import { connect } from 'react-redux'
-import { NavLink, useParams } from 'react-router-dom'
+import { NavLink, useNavigate, useParams } from 'react-router-dom'
 import { updateContent } from "../../actionCreator/actionCreator"
 import { getRecords } from '../../services/entities'
 import { AUTH_TOKEN } from '../../config/consts'
-import { UseRedirect, UseUpdate } from '../../config/hook'
-import { LOGIN_PATH } from '../../config/consts'
+import { UseRedirect, UseUpdate } from '../../config/hooks'
+import { HOME_PATH } from '../../config/consts'
+import { Modal } from 'bootstrap'
 
 const List = (props) => {
     const params = useParams()
+    const navigate = useNavigate()
     const isAuthenticated = sessionStorage.getItem(AUTH_TOKEN)
     let path = params.entityName
     if (params.toFind) {
@@ -18,140 +20,164 @@ const List = (props) => {
         }
     }
     if (!isAuthenticated && ['users/client', 'procedures', 'results'].includes(path)) {
-        UseRedirect(LOGIN_PATH)
-        return
+        UseRedirect(HOME_PATH)
+        const modal = document.getElementById('loginModal')
+        if (modal) {
+            new Modal(modal).show()
+        }
     }
     UseUpdate(props, path)
     let pagCoef = 0
-    switch (props.state.currentPage) {
+    switch (props.currentPage) {
         case 1:
             pagCoef = 1
             break;
-        case props.state.totalPages:
+        case props.totalPages:
             pagCoef = -1
             break;
         default:
             pagCoef = 0
     }
     return (
-        <>
-            {isAuthenticated &&
-                <NavLink to={`/add/${params.entityName}`} className="btn btn-outline-primary">Add new</NavLink>
-            }
-            {props.state.content
-                ? <>
-                    <label htmlFor="order">Order by name</label>
-                    <select id="order" onChange={(event) =>
-                                props.updateContent({...props.state, order: event.target.value}, path, event)}
-                            className="form-select w-25">
-                        {Children.toArray([...Object.entries({true : 'ascendent', false : 'descendent'})].map(e =>
-                            <option value={e[0]}>{e[1]}</option>
-                        ))}
-                    </select>
-                    <label htmlFor="print-by">Print by</label>
-                    <select id="print-by" onChange={(event) =>
-                                props.updateContent({...props.state, printBy: +event.target.value}, path, event)}
-                            className="form-select w-25">
-                        {Children.toArray([...Array(3).keys()].map(i =>
-                            <option value={(i + 1) * 20}>{(i + 1) * 20}</option>
-                        ))}
-                    </select>
+        <div className="vh-100">
+            <h4 className="d-flex">{params.entityName.replace(/^./, params.entityName[0].toUpperCase())}
+                <div className="btn-group w-50 ms-auto me-2">
+                    {isAuthenticated && params.entityName !== 'substances'
+                        && <NavLink to={`/add/${params.entityName}`} className="btn btn-outline-dark col-2 border-0 border-bottom rounded-0">Add new</NavLink>
+                    }
+                    <button onClick={() => navigate(-1)} className="btn btn-outline-dark col-2 border-0 border-bottom rounded-0">Back</button>
+                    {props.content
+                        && <>
+                            <a href={`data:application/octet-stream,${encodeURIComponent(JSON.stringify(props.content))}`}
+                                    download={`${Date.now() + params.entityName}.txt`}
+                                    className="btn btn-outline-dark col-2 border-0 border-bottom">
+                                Download
+                            </a>
+                            <select id="order" onChange={(event) =>
+                                    props.updateContent({...props, order: event.target.value}, path, event)}
+                                    defaultValue="Order"
+                                    className="btn btn-outline-dark col-2 border-0 border-bottom">
+                                <option disabled hidden>Order</option>
+                                {Children.toArray([...Object.entries({true : 'ascendent', false : 'descendent'})].map(e =>
+                                    <option value={e[0]}>{e[1]}</option>
+                                ))}
+                            </select>
+                            <select id="print-by" onChange={(event) =>
+                                    props.updateContent({...props, printBy: +event.target.value}, path, event)}
+                                    defaultValue="Print by"
+                                    className="btn btn-outline-dark col-2 border-0 border-bottom rounded-0">
+                                <option disabled hidden>Print by</option>
+                                {Children.toArray([...Array(3).keys()].map(i =>
+                                    <option value={(i + 1) * 20}>{(i + 1) * 20}</option>
+                                ))}
+                            </select>
+                        </>
+                    }
+                </div>
+            </h4>
+            {props.content
+                ? <div className="d-flex flex-column">
                     <div id="list-error" className="alert alert-danger d-none"></div>
                     <table className="table">
                         <thead>
-                            <tr key="thead">
-                                <th>
+                            <tr>
+                                <th className="p-0">
                                     <button name="name-order"
                                             onClick={(event) =>
-                                                props.updateContent({...props.state, localOrder: !props.state.localOrder}, path, event)}
-                                            className="btn">
-                                        Name
+                                                props.updateContent({...props, localOrder: !props.localOrder}, path, event)}
+                                            className="btn btn-outline-dark border-0 rounded-0 w-100 text-start p-3">
+                                        Name {props.localOrder ? <>&darr;</> : <>&uarr;</>}
                                     </button>
                                 </th>
+                                {isAuthenticated && params.entityName !== 'substances'
+                                    && <>
+                                        <th />
+                                        <th />
+                                    </>
+                                }
                             </tr>
                         </thead>
                         <tbody>
-                            {props.state.content.map(cntnt =>
-                                <tr id={cntnt.id} key={cntnt.id}>
-                                    <td>
-                                        <NavLink to={`/details/${params.entityName}/${cntnt.id}`}>
+                            {Children.toArray(props.content.map(cntnt =>
+                                <tr id={cntnt.id}>
+                                    <td className="p-0">
+                                        <NavLink to={`/details/${params.entityName}/${cntnt.id}`} className="btn btn-outline-dark border-0 rounded-0 w-100 text-start p-3">
                                             {cntnt.name ?? cntnt.userName ?? cntnt.obtainmentTime}
                                         </NavLink>
                                     </td>
-                                    {isAuthenticated &&
-                                    <>
-                                        <td>
-                                            <NavLink to={`/edit/${params.entityName}/${cntnt.id}`}>
-                                                Edit
-                                            </NavLink>
-                                        </td>
-                                        <td>
-                                            <NavLink to={`/delete/${params.entityName}/${cntnt.id}`}>
-                                                Delete
-                                            </NavLink>
-                                        </td>
-                                    </>
+                                    {isAuthenticated && params.entityName !== 'substances'
+                                        && <>
+                                            <td className="p-0">
+                                                <NavLink to={`/edit/${params.entityName}/${cntnt.id}`} className="btn btn-outline-dark border-0 rounded-0 w-100 text-start p-3">
+                                                    Edit
+                                                </NavLink>
+                                            </td>
+                                            <td className="p-0">
+                                                <NavLink to={`/delete/${params.entityName}/${cntnt.id}`} className="btn btn-outline-dark border-0 rounded-0 w-100 text-start p-3 ms-4">
+                                                    Delete
+                                                </NavLink>
+                                            </td>
+                                        </>
                                     }
                                 </tr>
-                            )}
+                            ))}
                         </tbody>
                     </table>
-                    {props.state.totalPages > 1 &&
-                        <ul className="pagination">
+                    {props.totalPages > 1
+                        && <ul className="pagination mx-auto">
                             {Children.toArray([
-                                props.state.currentPage - 1 + pagCoef
-                                , props.state.currentPage - 1 + pagCoef
-                                , props.state.currentPage + pagCoef
-                                , props.state.currentPage + 1 + pagCoef
-                                , props.state.currentPage + 1 + pagCoef
-                            ].map((pageNum, index) => {
-                                switch (index) {
-                                    case 0:
-                                        return pagCoef !== 1 &&
-                                            <li className="page-item">
-                                                <button onClick={(event) =>
-                                                            props.updateContent({...props.state, currentPage: pageNum - pagCoef}, path, event)}
-                                                        className="page-link">
-                                                    Back
-                                                </button>
-                                            </li>
-                                    case 4:
-                                        return pagCoef !== -1 &&
-                                            <li className="page-item">
-                                                <button onClick={(event) =>
-                                                            props.updateContent({...props.state, currentPage: pageNum - pagCoef}, path, event)}
-                                                        className="page-link">
-                                                    Forward
-                                                </button>
-                                            </li>
-                                    default:
-                                        return <li className="page-item">
-                                                <button onClick={(event) =>
-                                                            props.updateContent({...props.state, currentPage: pageNum}, path, event)}
-                                                        className="page-link">
-                                                    {pageNum}
-                                                </button>
-                                            </li>
-                                }
-                            }))
+                                    props.currentPage - 1 + pagCoef
+                                    , props.currentPage - 1 + pagCoef
+                                    , props.currentPage + pagCoef
+                                    , props.currentPage + 1 + pagCoef
+                                    , props.currentPage + 1 + pagCoef
+                                ].map((pageNum, index) => {
+                                    switch (index) {
+                                        case 0:
+                                            return pagCoef !== 1
+                                                && <li className="page-item">
+                                                    <button onClick={(event) =>
+                                                                props.updateContent({...props, currentPage: pageNum - pagCoef}, path, event)}
+                                                            className="page-link bg-dark text-white rounded-0">
+                                                        Back
+                                                    </button>
+                                                </li>
+                                        case 4:
+                                            return pagCoef !== -1
+                                                && <li className="page-item">
+                                                    <button onClick={(event) =>
+                                                                props.updateContent({...props, currentPage: pageNum - pagCoef}, path, event)}
+                                                            className="page-link bg-dark text-white rounded-0">
+                                                        Forward
+                                                    </button>
+                                                </li>
+                                        default:
+                                            return <li className="page-item">
+                                                    <button onClick={(event) =>
+                                                                props.updateContent({...props, currentPage: pageNum}, path, event)}
+                                                            className="page-link bg-dark text-white rounded-0">
+                                                        {pageNum.toString()}
+                                                    </button>
+                                                </li>
+                                    }
+                                }))
                             }
                         </ul>
                     }
-                    <a href={`data:application/octet-stream,${encodeURIComponent(JSON.stringify(props.state.content))}`}
-                            download={`${Date.now() + params.entityName}.txt`}
-                            className="btn btn-outline-primary">
-                        Download
-                    </a>
-                </>
-                : <div className="spinner-grow text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
+                </div>
+                : <div className="h-75 d-flex justify-content-center align-items-center gap-1">
+                    {Children.toArray([...Array(3).keys()].map(() =>
+                        <div className="spinner-grow text-primary" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                    ))}
                 </div>
             }
-        </>
+        </div>
     )
 }
 
-const mapStateToProps = (state) => { return { state } }
+const mapStateToProps = (state) => { return state }
 
 const mapDispatchToProps = (dispatch) => {
     return {
@@ -165,7 +191,7 @@ const mapDispatchToProps = (dispatch) => {
                 stateCopy.content = data.content
                 stateCopy.totalPages = Math.ceil(data.total_amount / stateCopy.printBy)
             }
-            dispatch(updateContent(stateCopy.content, stateCopy.totalPages, stateCopy.localOrder))
+            dispatch(updateContent(stateCopy.content, stateCopy.totalPages, stateCopy.localOrder, stateCopy.currentPage))
         }
     }
 }

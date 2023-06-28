@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Thss0.Web.Models;
+using Thss0.Web.Models.Entities;
 
 namespace Thss0.Web.Data
 {

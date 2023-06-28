@@ -5,10 +5,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Thss0.Web.Config;
 using Thss0.Web.Models.ViewModels;
-using Thss0.Web.Models;
 using Thss0.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Models.ViewModels.CRUD;
+using Thss0.Web.Models.Entities;
 
 namespace Thss0.Web.Controllers.API
 {

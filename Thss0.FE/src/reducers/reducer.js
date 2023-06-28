@@ -6,6 +6,7 @@ function appReducer(state, action) {
                 , content: [...action.content]?.sort((a, b) => action.localOrder ? a.name?.localeCompare(b.name) : b.name?.localeCompare(a.name))
                 , totalPages: action.totalPages
                 , localOrder: action.localOrder
+                , currentPage: action.currentPage
             }
         case 'updateAuth':
             return {

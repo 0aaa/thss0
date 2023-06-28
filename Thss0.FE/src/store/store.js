@@ -9,6 +9,6 @@ const appStore = configureStore({
         , currentPage: 1
         , localOrder: true
     }
-    , middleware: m => m({ serializableCheck: false })
+    , middleware: mw => mw({ serializableCheck: false })
 })
 export default appStore

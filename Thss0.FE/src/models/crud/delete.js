@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Children } from 'react'
 import { connect } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import { updateContent } from '../../actionCreator/actionCreator'
@@ -17,34 +17,37 @@ class Delete extends React.Component {
         this.setState({ content })
     }
     render() {
+        if (!this.state.content) {
+            return
+        }
         return (
-            <>
-                <h5>Delete {this.state.content['name']}</h5>
+            <form onSubmit={(event) => this.props.handleDelete(event, this.path, this.props.params.entityName, this.props.navigate)}>
                 <div id="delete-error" className="alert alert-danger d-none"></div>
-                <form onSubmit={(event) => this.props.handleDelete(event, this.path, this.props.params.entityName, this.props.navigate)}
-                    className="w-50">
-                    {Object.keys(this.state.content).map(key =>
-                        this.state.content[key] !== '' && !key.includes('Names') &&
-                        <dl key={key}>
+                <legend className="d-flex">Delete {this.state.content['name'] ?? this.state.content['userName']}
+                    <div className="btn-group w-25 ms-auto me-2">
+                        <input type="submit" value="Delete" className="btn btn-outline-danger border-0 border-bottom rounded-0 col-6" />
+                        <button type="button" onClick={() => this.props.navigate(-1)} className="btn btn-outline-dark border-0 border-bottom rounded-0 col-6">Back</button>
+                    </div>
+                </legend>
+                {Children.toArray(Object.keys(this.state.content).map(key =>
+                    this.state.content[key] !== '' && !key.includes('Names')
+                        && <dl>
                             <dt>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</dt>
                             <dd>
                                 {this.state.content[key].length > 0
                                     ? ['department', 'user', 'procedure', 'result'].includes(key)
-                                        ? this.state.content[key].split('\n').filter(e => e !== '').map((e, i) =>
-                                            <>
+                                        ? Children.toArray(this.state.content[key].split('\n').filter(e => e !== '').map((_, i) =>
+                                        <>
                                                 {this.state.content[key + 'Names'].split('\n')[i]}
                                                 <br/>
-                                            </>)
+                                            </>))
                                         : this.state.content[key]
-                                    : 'Empty'
-                                }
+                                        : 'Empty'
+                                    }
                             </dd>
                         </dl>
-                    )}
-                    <input type="submit" value="Delete" className="btn btn-outline-danger" />
-                </form>
-                <button onClick={() => this.props.navigate(-1)} className="btn btn-outline-primary">Back</button>
-            </>
+                ))}
+            </form>
         )
     }
 }
@@ -58,7 +61,9 @@ const mapDispatchToProps = (dispatch) => {
             event.preventDefault()
             await deleteRecord(path)
             const data = await getRecords(entityName)
-            dispatch(updateContent(data.content))
+            if (data) {
+                dispatch(updateContent(data.content))
+            }
             navigate(-1)
         }
     }

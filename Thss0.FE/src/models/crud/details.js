@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { Children, useEffect } from 'react'
 import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getRecords } from '../../services/entities'
 import { connect } from 'react-redux'
@@ -8,45 +8,58 @@ function Details(props) {
     const params = useParams()
     const navigate = useNavigate()
     const location = useLocation()
-    useEffect(() => { props.updateContent({...props.state}, `${params.entityName}/${params.id}`) }, [location])
-    console.log(props.state.content[0])
+    useEffect(() => { props.updateContent({ ...props }, `${params.entityName}/${params.id}`) }, [location])
     return (
-        <>
+        <div className="vh-100 d-flex flex-column">
             <div id="details-error" className="alert alert-danger d-none"></div>
-            <h5>{props.state.content[0]['name']}</h5>
-            {Object.keys(props.state.content[0]).map(key =>
-                props.state.content[0][key] !== '' && !key.includes('Names') &&
-                <dl key={'dl-' + key}>
-                    <dt>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</dt>
-                    <dd>
-                        {props.state.content[0][key]?.length > 0
-                            ? ['department', 'user', 'procedure', 'result'].includes(key)
-                                ? props.state.content[0][key].split('\n').filter(e => e !== '').map((e, i) =>
-                                    <>
-                                        <NavLink key={'a-' + key} to={`/details/${key}s/${e}`}>
-                                            {props.state.content[0][key + 'Names'].split('\n')[i]}
-                                        </NavLink>
-                                        <br/>
-                                    </>)
-                                : props.state.content[0][key]
-                            : 'Empty'
-                        }
-                    </dd>
-                </dl>
-            )}
-            <button onClick={() => navigate(-1)} className="btn btn-outline-primary">Back</button>
-        </>
+            {props.content
+                ? <div className="h-75">
+                    <h5 className="d-flex">{props.content[0]['name']}
+                        <button onClick={() => navigate(-1)} className="btn btn-outline-dark border-0 border-bottom rounded-0 col-2 ms-auto me-2">Back</button>
+                    </h5>
+                    {Children.toArray(Object.keys(props.content[0]).map(key =>
+                        props.content[0][key] !== '' && !key.includes('Names')
+                            && <dl>
+                                <dt>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</dt>
+                                <dd>
+                                    {props.content[0][key]?.length > 0
+                                        ? ['department', 'user', 'procedure', 'result', 'substance'].includes(key)
+                                            ? Children.toArray(props.content[0][key].split('\n').filter(e => e !== '').map((e, i) =>
+                                                <>
+                                                    <NavLink to={`/details/${key}s/${e}`}>
+                                                        {props.content[0][key + 'Names'].split('\n')[i]}
+                                                    </NavLink>
+                                                    <br />
+                                                </>))
+                                            : props.content[0][key]
+                                        : 'Empty'
+                                    }
+                                </dd>
+                            </dl>
+                    ))}
+                </div>
+                : <div className="h-75 d-flex justify-content-center align-items-center gap-1">
+                    {Children.toArray([...Array(3).keys()].map(() =>
+                        <div className="spinner-grow text-primary" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                    ))}
+                </div>
+            }
+        </div>
     )
 }
 
-const mapStateToProps = (state) => { return { state } }
+const mapStateToProps = (state) => { return state }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        updateContent: async (stateCopy, path) => {      
+        updateContent: async (stateCopy, path) => {
             const data = await getRecords(path)
-            delete data['id']
-            dispatch(updateContent([data], stateCopy.totalPages, stateCopy.localOrder))
+            if (data) {
+                delete data['id']
+                dispatch(updateContent([data], stateCopy.totalPages, stateCopy.localOrder, stateCopy.currentPage))
+            }
         }
     }
 }

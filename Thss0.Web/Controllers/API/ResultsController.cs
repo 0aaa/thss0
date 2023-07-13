@@ -3,19 +3,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
-using System.Net.Sockets;
-using System.Xml.Serialization;
 using Thss0.Web.Data;
 using Thss0.Web.Extensions;
 using Thss0.Web.Models.Entities;
-using Thss0.Web.Models.ViewModels.CRUD;
+using Thss0.Web.Models.ViewModels;
 
 namespace Thss0.Web.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
     public class ResultsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -29,6 +25,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpGet("{order:bool?}/{printBy:int?}/{page:int?}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
         public async Task<ActionResult<IEnumerable<ResultViewModel>>> GetResults(bool order = true, int printBy = 20, int page = 1)
         {
             var results = await _context.Results.ToListAsync();
@@ -46,6 +43,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpGet("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
         public async Task<ActionResult<ResultViewModel>> GetResult(string id)
         {
             var result = await _context.Results.FindAsync(id);
@@ -57,6 +55,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
         public async Task<ActionResult<Result>> PostResult(ResultViewModel result)
         {
             new EntityInitializer().Validation(ModelState, result);
@@ -83,7 +82,8 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutResult(string id, ResultViewModel result)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
+        public async Task<ActionResult> PutResult(string id, ResultViewModel result)
         {
             if (id != result.Id)
             {
@@ -112,7 +112,8 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteResult(string id)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
+        public async Task<ActionResult> DeleteResult(string id)
         {
             var result = await _context.Results.FindAsync(id);
             if (result == null)

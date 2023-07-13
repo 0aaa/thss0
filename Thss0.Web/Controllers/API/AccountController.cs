@@ -4,10 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Thss0.Web.Config;
-using Thss0.Web.Models.ViewModels;
 using Thss0.Web.Data;
-using Microsoft.EntityFrameworkCore;
-using Thss0.Web.Models.ViewModels.CRUD;
+using Thss0.Web.Models.ViewModels;
 using Thss0.Web.Models.Entities;
 
 namespace Thss0.Web.Controllers.API
@@ -16,7 +14,6 @@ namespace Thss0.Web.Controllers.API
     [ApiController]
     public class AccountController : Controller
     {
-        private const string DEFAULT_ROLE_CLAIM_TYPE = "admin";
         private const string CLAIM_AUTHENTICATION_TYPE = "Token";
         private const string ERROR_TEXT = "Wrong login or password";
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -33,13 +30,14 @@ namespace Thss0.Web.Controllers.API
         private async Task<ClaimsIdentity> GetIdentity(string name, string password)
         {
             var result = await _signInManager.PasswordSignInAsync(name, password, false, false);
-            if (result.Succeeded)
+            var user = _signInManager.UserManager.Users.FirstOrDefault(u => u.UserName == name);
+            if (result.Succeeded && user != null)
             {
                 return new ClaimsIdentity(
                     new List<Claim>
                     {
                         new Claim(ClaimsIdentity.DefaultNameClaimType, name)
-                        , new Claim(ClaimsIdentity.DefaultRoleClaimType, DEFAULT_ROLE_CLAIM_TYPE)
+                        , new Claim(ClaimsIdentity.DefaultRoleClaimType, (await _signInManager.UserManager.GetRolesAsync(user))[0])
                     }
                     , CLAIM_AUTHENTICATION_TYPE
                     , ClaimsIdentity.DefaultNameClaimType
@@ -50,7 +48,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPost]
-        public async Task<IActionResult> Token(UserViewModel user)
+        public async Task<ActionResult> Token(UserViewModel user)
         {
             if (!_signInManager.UserManager.Users.Any())
             {
@@ -64,7 +62,7 @@ namespace Thss0.Web.Controllers.API
                     , audience: AuthCredentials.AUDIENCE
                     , notBefore: DateTime.Now
                     , claims: identity.Claims
-                    , expires: DateTime.Now.Add(TimeSpan.FromMinutes(AuthCredentials.LIFETIME))
+                    , expires: DateTime.Now.Add(TimeSpan.FromDays(AuthCredentials.LIFETIME))
                     , signingCredentials: new SigningCredentials(AuthCredentials.GetSigningKey(), SecurityAlgorithms.HmacSha256)
                 );
                 var encodedToken = new JwtSecurityTokenHandler().WriteToken(token);

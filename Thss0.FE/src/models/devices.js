@@ -26,6 +26,9 @@ const Devices = (props) => {
             ).join(''))}
         </div>`
     getRecords('devices').then(devices => {
+        if (!devices) {
+            return
+        }
         devicesModal.innerHTML
             = `${devices.content
                 ? `<table class="table">
@@ -39,7 +42,7 @@ const Devices = (props) => {
                                         ${device.availability ? 'ready' : 'busy'}
                                     </td>
                                     <td class="text-end">
-                                        <button id="${device.name}-btn" class="btn btn-outline-primary py-0" ${!device.availability && 'disabled'} data-bs-dismiss="modal">Read</button>
+                                        <button id="${device.name}-btn" class="btn btn-outline-dark py-0 border-0 border-bottom rounded-0" ${!device.availability && 'disabled'} data-bs-dismiss="modal">Read</button>
                                     </td>
                                 </tr>`
                             ).join(''))}

@@ -6,13 +6,12 @@ using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Extensions;
 using Thss0.Web.Models.Entities;
-using Thss0.Web.Models.ViewModels.CRUD;
+using Thss0.Web.Models.ViewModels;
 
 namespace Thss0.Web.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class DepartmentsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -54,6 +53,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
         public async Task<ActionResult<Department>> PostDepartment(DepartmentViewModel department)
         {
             new EntityInitializer().Validation(ModelState, department);
@@ -80,7 +80,8 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDepartment(string id, DepartmentViewModel department)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
+        public async Task<ActionResult> PutDepartment(string id, DepartmentViewModel department)
         {
             if (id != department.Id)
             {
@@ -109,7 +110,8 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDepartment(string id)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
+        public async Task<ActionResult> DeleteDepartment(string id)
         {
             var department = await _context.Departments.FindAsync(id);
             if (department == null)

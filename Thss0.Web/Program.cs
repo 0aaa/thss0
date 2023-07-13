@@ -44,36 +44,36 @@ namespace Thss0.Web
             var app = builder.Build();
 
             app.UseSession();
-            //if (app.Environment.IsDevelopment())
-            //{
-            //    app.UseDeveloperExceptionPage();
-            //}
-            //else
-            //{
-            //    app.UseExceptionHandler("/Home/Error")
-            //        .UseHsts();
-            //}
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error")
+                    .UseHsts();
+            }
             app
-                //.UseStatusCodePages("text/html", "404")
+                .UseStatusCodePages("text/html", "404")
                 .UseDefaultFiles()
                 .UseStaticFiles()
 
-                .UseCors(bldr =>
-                    bldr.WithOrigins("http://localhost:3000")
+                .UseCors(builder =>
+                    builder.WithOrigins("http://localhost:3000")
                         .WithHeaders("content-type", "authorization")
                         .WithMethods("GET", "PUT", "POST", "DELETE", "OPTIONS"))
                 .UseHttpsRedirection()
-                .UseRouting()
+                .UseRouting();
 
-                .UseAuthentication()
-                .UseAuthorization()
-                .UseEndpoints(cnfgrtn =>
-                {
-                    cnfgrtn.MapControllerRoute(
-                        name: "default",
-                        pattern: "api/{controller=Home}/{action=Index}");
-                    cnfgrtn.MapControllers();
-                });
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseEndpoints(builder =>
+            {
+                builder.MapControllerRoute(
+                    name: "default",
+                    pattern: "api/{controller=Home}/{action=Index}");
+                builder.MapControllers();
+            });
 
             app.Run();
         }

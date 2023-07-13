@@ -14,7 +14,7 @@ function Details(props) {
             <div id="details-error" className="alert alert-danger d-none"></div>
             {props.content
                 ? <div className="h-75">
-                    <h5 className="d-flex">{props.content[0]['name']}
+                    <h5 className="d-flex">{props.content[0]['name'] ?? props.content[0]['obtainmentTime']}
                         <button onClick={() => navigate(-1)} className="btn btn-outline-dark border-0 border-bottom rounded-0 col-2 ms-auto me-2">Back</button>
                     </h5>
                     {Children.toArray(Object.keys(props.content[0]).map(key =>

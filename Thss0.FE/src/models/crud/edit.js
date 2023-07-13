@@ -7,7 +7,7 @@ import { editRecord, getRecords } from '../../services/entities'
 class Edit extends React.Component {
     constructor(props) {
         super(props)
-        this.path = props.params.entityName + '/' + props.params.id
+        this.path = `${props.params.entityName}/${props.params.id}`
         this.state = {
             content: []
         }
@@ -25,7 +25,7 @@ class Edit extends React.Component {
     }
     render() {
         return (
-            <form onSubmit={(event) => this.props.handleEdit(event, this.path, this.props.params.entityName, this.props.navigate)}>
+            <form onSubmit={event => this.props.handleEdit(event, this.path, this.props.params.entityName, this.props.navigate)}>
                 <legend className="d-flex">Edit
                     <div className="btn-group w-25 ms-auto me-2">
                         <input type="submit" value="Submit" className="btn btn-outline-dark border-0 border-bottom rounded-0 col-6" />

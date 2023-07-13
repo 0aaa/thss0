@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Thss0.Web.Models.ViewModels.CRUD;
+using Thss0.Web.Models.ViewModels;
 using Thss0.Web.Extensions;
 using Thss0.Web.Models.Entities;
 
@@ -11,7 +11,6 @@ namespace Thss0.Web.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -20,6 +19,7 @@ namespace Thss0.Web.Controllers.API
             => _userManager = userManager;
 
         [HttpGet("{role?}/{order:bool?}/{printBy:int?}/{page:int?}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
         public async Task<ActionResult<IEnumerable<UserViewModel>>> GetUsers(string role = "client", bool order = true, int printBy = 20, int page = 1)
         {
             var users = await _userManager.GetUsersInRoleAsync(role);
@@ -37,6 +37,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpGet("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
         public async Task<ActionResult<UserViewModel>> GetUser(string id)
         {
             if (id == null || _userManager.Users == null)
@@ -52,6 +53,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
         public async Task<ActionResult<UserViewModel>> Post(UserViewModel user)
         {
             new EntityInitializer().Validation(ModelState, user);
@@ -66,13 +68,10 @@ namespace Thss0.Web.Controllers.API
                 var result = await _userManager.CreateAsync(userToAdd, user.Password);
                 if (!result.Succeeded)
                 {
-                    // for (int i = 0; i < crteRslt.Errors.Count; i++)
-                    // {
                     foreach (var err in result.Errors)
                     {
                         ModelState.AddModelError(err.Code, err.Description);
                     }
-                    // }
                     return BadRequest(ModelState);
                 }
                 await _userManager.AddToRoleAsync(userToAdd, user.Role);
@@ -82,6 +81,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPut("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
         public async Task<ActionResult<UserViewModel>> Put(string id, UserViewModel user)
         {
             if (id != user.Id)
@@ -131,6 +131,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpDelete("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
         public async Task<ActionResult<UserViewModel>> Delete(string id)
         {
             if (_userManager.Users == null)

@@ -7,12 +7,18 @@ async function getRecords(path, globalOrder, printBy, currentPage) {
     printBy = printBy ? `/${printBy}` : ''
     currentPage = currentPage ? `/${currentPage}` : ''
     path += path === 'users' ? '/client' : ''
-    const fetchResult = await fetch(API_URL + path + globalOrder + printBy + currentPage)
+    const fetchResult = await fetch(API_URL + path + globalOrder + printBy + currentPage, {
+        method: 'GET'
+        , headers: {
+            'Accept': 'application/json'
+            , 'Content-Type': 'application/json'
+            , 'Authorization': `bearer ${sessionStorage.getItem(AUTH_TOKEN)}`
+        }
+    })
     if (fetchResult.ok) {
-        const data = await fetchResult.json()
-        return data
+        return await fetchResult.json()
     } else {
-        UseToast('Error')
+        UseToast(`Error: ${fetchResult.status}`)
         return null
     }
 }
@@ -32,7 +38,7 @@ async function addRecord(path, crdntlsDctnry) {
         UseToast('Added')
     } else {
         handleErrors(fetchResult)
-        UseToast('Error')
+        UseToast(`Error: ${fetchResult.status}`)
     }
 }
 
@@ -51,7 +57,7 @@ async function editRecord(path, crdntlsDctnry) {
         UseToast('Edited')
     } else {
         handleErrors(fetchResult)
-        UseToast('Error')
+        UseToast(`Error: ${fetchResult.status}`)
     }
 }
 

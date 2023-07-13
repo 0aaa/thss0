@@ -7,13 +7,12 @@ using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Extensions;
 using Thss0.Web.Models.Entities;
-using Thss0.Web.Models.ViewModels.CRUD;
+using Thss0.Web.Models.ViewModels;
 
 namespace Thss0.Web.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
     public class ProceduresController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -27,6 +26,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpGet("{order:bool?}/{printBy:int?}/{page:int?}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
         public async Task<ActionResult<IEnumerable<ProcedureViewModel>>> GetProcedures(bool order = true, int printBy = 20, int page = 1)
         {
             var procedures = await _context.Procedures.ToListAsync();
@@ -44,6 +44,7 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpGet("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
         public async Task<ActionResult<ProcedureViewModel>> GetProcedure(string id)
         {
             var source = await _context.Procedures.FindAsync(id);
@@ -55,9 +56,9 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
         public async Task<ActionResult<Procedure>> PostProcedure(ProcedureViewModel procedure)
         {
-            // Validation(procedure);
             new EntityInitializer().Validation(ModelState, procedure);
             if (!ModelState.IsValid)
             {
@@ -82,7 +83,8 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProcedure(string id, ProcedureViewModel procedure)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
+        public async Task<ActionResult> PutProcedure(string id, ProcedureViewModel procedure)
         {
             if (id != procedure.Id)
             {
@@ -111,7 +113,8 @@ namespace Thss0.Web.Controllers.API
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProcedure(string id)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
+        public async Task<ActionResult> DeleteProcedure(string id)
         {
             var procedure = await _context.Procedures.FindAsync(id);
             if (procedure == null)
@@ -128,26 +131,6 @@ namespace Thss0.Web.Controllers.API
                 Console.WriteLine(e.Message);
             }
             return NoContent();
-        }
-
-        private void Validation(ProcedureViewModel procedure)
-        {
-            var properties = typeof(ProcedureViewModel).GetProperties()
-                                    .Where(p => !new[] { "Id", "Department", "CreationTime", "Result", "ResultNames", "User", "Substance" }
-                                    .Contains(p.Name)).ToArray();
-            string value;
-            for (ushort i = 0; i < properties.Length; i++)
-            {
-                value = properties[i].GetValue(procedure)?.ToString() ?? "";
-                if (properties[i].Name.Contains("Time") && value != "" && DateTime.Parse(value) < DateTime.Now)
-                {
-                    ModelState.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} cannot be less than the current time");
-                }
-                else if (!properties[i].Name.Contains("Time") && value == "")
-                {
-                    ModelState.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} required");
-                }
-            }
         }
 
         private async Task<Procedure> InitializeProcedure(ProcedureViewModel source, Procedure dest)
@@ -181,17 +164,24 @@ namespace Thss0.Web.Controllers.API
                 };
             return dest;
         }
-        private async Task<Procedure> HandleResult(ProcedureViewModel source, Procedure dest)// Check for DateTime.Parse an invalid String.
+        private async Task<Procedure> HandleResult(ProcedureViewModel source, Procedure dest)
         {
             var result = await _context.Results.FirstOrDefaultAsync(r => r.ObtainmentTime.ToString() == source.ResultNames);
             var usersArr = source.UserNames.Split();
-            result ??= new Result
+            try
             {
-                ObtainmentTime = DateTime.Parse(source.ResultNames)
-            };
-            for (ushort i = 0; i < usersArr.Length; i++)
+                result ??= new Result
+                {
+                    ObtainmentTime = DateTime.Parse(source.ResultNames)
+                };
+                for (ushort i = 0; i < usersArr.Length; i++)
+                {
+                    result.User.Add(await _userManager.FindByNameAsync(usersArr[i]));
+                }
+            }
+            catch (FormatException e)
             {
-                result.User.Add(await _userManager.FindByNameAsync(usersArr[i]));
+                Console.WriteLine(e.Message);
             }
             dest.Result = result;
             return dest;

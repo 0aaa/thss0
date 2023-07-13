@@ -6,10 +6,11 @@ namespace Thss0.Web.Extensions
 {
     public class EntityInitializer
     {
+        const ushort MAX_RESULT_GAP = 5;
         private readonly string[] _departmentProperties = { "Name" };
         private readonly string[] _userProperties = { "UserName", "DoB", "PoB" };
         private readonly string[] _procedureProperties = { "Name", "RealizationTime", "NextProcedureTime" };
-        private readonly string[] _resultProperties = { "Content" };
+        private readonly string[] _resultProperties = { "ObtainmentTime", "Content" };
 
         public void Validation(ModelStateDictionary state, object viewModel)
         {
@@ -35,7 +36,7 @@ namespace Thss0.Web.Extensions
             for (ushort i = 0; i < properties.Length; i++)
             {
                 value = properties[i].GetValue(viewModel)?.ToString() ?? "";
-                if (properties[i].Name.Contains("Time") && value != "" && DateTime.Parse(value) < DateTime.Now)
+                if (properties[i].Name.Contains("Time") && value != "" && DateTime.Parse(value) < DateTime.Now.AddMinutes(MAX_RESULT_GAP))
                 {
                     state.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} cannot be less than the current time");
                 }

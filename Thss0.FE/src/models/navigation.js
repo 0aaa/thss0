@@ -13,6 +13,7 @@ import DeleteRouter from './crud/delete'
 import { connect } from 'react-redux'
 import List from './crud/list'
 import { AUTH_TOKEN, USERNAME } from '../config/consts'
+import 'bootstrap/dist/css/bootstrap.css'
 
 
 const Navigation = () => {
@@ -20,11 +21,14 @@ const Navigation = () => {
     const navigate = useNavigate()
     const entities = ['departments', 'clients', 'professionals', 'procedures', 'results', 'substances']
     return <div className="ps-4">
+        <style>            
+            {'.form-control:focus {box-shadow: none}'}
+        </style>
         <nav className="navbar navbar-expand-xl">
             <div className="container-fluid p-0">
                 <button className="navbar-toggler border-0 border-bottom rounded-0" type="button" data-bs-toggle="offcanvas"
                         data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <img src="/favicon.ico" alt="" />
+                    <img src="/favicon.ico" alt="Menu" />
                 </button>
                 <div className="offcanvas offcanvas-end" tabIndex="-1" id="navbarNav" aria-labelledby="navbarNavXlLabel">
                     <div className="offcanvas-header">
@@ -35,7 +39,7 @@ const Navigation = () => {
                         <ul className="navbar-nav w-100 nav-underline">
                             <li className="nav-item">
                                 <NavLink to="/" className="navbar-brand">
-                                    <img src="/favicon.ico" alt="" />
+                                    <img src="/favicon.ico" alt="Home" />
                                 </NavLink>
                             </li>
                             <li className="nav-item">
@@ -58,19 +62,19 @@ const Navigation = () => {
                                     <li className="nav-item">
                                         <NavLink to="/c/results" className="nav-link">Results</NavLink>
                                     </li>
-                                    <form onSubmit={(event) => {
+                                    <form onSubmit={event => {
                                                 event.preventDefault()
-                                                navigate(`/c/${event.target[0].value}/${event.target[1].value}`)
+                                                navigate(`/c/${event.target[0].value}/${encodeURIComponent(event.target[1].value)}`)
                                             }} role="search" className="input-group ms-auto" style={{ width: '360px' }}>
-                                        <select className="form-select btn btn-outline-dark border-0 border-bottom rounded-0">
+                                        <select className="form-select btn btn-outline-dark border-0 border-bottom rounded-0 text-start ps-0 pe-5">
                                             {Children.toArray(entities.map(e =>
                                                 <option value={e}>{e.replace(/^./, e[0].toUpperCase())}</option>
                                             ))}
                                         </select>
-                                        <input type="search" aria-label="Search" className="form-control border-0 border-bottom" placeholder="Search" />
+                                        <input type="search" aria-label="Search" className="form-control border-0 border-bottom btn-outline-dark" placeholder="Search" />
                                         <button type="submit" className="btn btn-outline-dark border-0 border-bottom rounded-0">Search</button>
                                     </form>
-                                    <li className="nav-item" style={{ paddingTop: "6px" }}>
+                                    <li className="nav-item" style={{ paddingTop: '6px' }}>
                                         <h5>{sessionStorage.getItem(USERNAME)}</h5>
                                     </li>
                                     <li className="nav-item">
@@ -79,14 +83,10 @@ const Navigation = () => {
                                 </>
                                 : <>
                                     <li className="nav-item">
-                                        <button type="button" className="nav-link btn rounded-0" data-bs-toggle="modal" data-bs-target="#registerModal">
-                                            Register
-                                        </button>
+                                        <a href="/" className="nav-link" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
                                     </li>
                                     <li className="nav-item">
-                                        <button type="button" className="nav-link btn rounded-0" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                            Login
-                                        </button>
+                                        <a href="/" className="nav-link" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
                                     </li>
                                 </>
                             }
@@ -108,7 +108,6 @@ const Navigation = () => {
                     <Route path="/delete/:entityName/:id" element={<DeleteRouter />} />
                 </>
             }
-            {/* <Route path="/login" element={isAuthenticated ? App() : <Login />} /> */}
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/c/:entityName/:toFind?/:order?/:printBy?/:page?" element={<List />} />
             <Route path="/details/:entityName/:id" element={<Details />} />

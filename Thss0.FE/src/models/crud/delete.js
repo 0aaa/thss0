@@ -21,7 +21,7 @@ class Delete extends React.Component {
             return
         }
         return (
-            <form onSubmit={(event) => this.props.handleDelete(event, this.path, this.props.params.entityName, this.props.navigate)}>
+            <form onSubmit={event => this.props.handleDelete(event, { ...this.props }, this.path)}>
                 <div id="delete-error" className="alert alert-danger d-none"></div>
                 <legend className="d-flex">Delete {this.state.content['name'] ?? this.state.content['userName']}
                     <div className="btn-group w-25 ms-auto me-2">
@@ -42,8 +42,8 @@ class Delete extends React.Component {
                                                 <br/>
                                             </>))
                                         : this.state.content[key]
-                                        : 'Empty'
-                                    }
+                                    : 'Empty'
+                                }
                             </dd>
                         </dl>
                 ))}
@@ -57,14 +57,14 @@ const mapStateToProps = (state) => { return state }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        handleDelete: async (event, path, entityName, navigate) => {
+        handleDelete: async (event, stateCopy, path) => {
             event.preventDefault()
             await deleteRecord(path)
-            const data = await getRecords(entityName)
+            const data = await getRecords(stateCopy.params.entityName)
             if (data) {
-                dispatch(updateContent(data.content))
+                dispatch(updateContent(data.content, stateCopy.totalPages, stateCopy.localOrder, stateCopy.currentPage))
             }
-            navigate(-1)
+            stateCopy.navigate(-1)
         }
     }
 }

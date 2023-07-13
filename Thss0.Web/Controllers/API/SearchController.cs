@@ -5,15 +5,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Web;
 using Thss0.Web.Data;
 using Thss0.Web.Models.Entities;
-using Thss0.Web.Models.ViewModels.CRUD;
+using Thss0.Web.Models.ViewModels;
 
 namespace Thss0.Web.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
     public class SearchController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -29,6 +30,7 @@ namespace Thss0.Web.Controllers.API
         public async Task<ActionResult<IEnumerable<object>>> GetResults(string entityName, string toFind, bool order = true, int printBy = 20, int page = 1)
         {
             object json;
+            toFind = HttpUtility.UrlDecode(toFind);
             switch (entityName)
             {
                 case "departments":

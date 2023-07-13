@@ -31,41 +31,48 @@ const List = (props) => {
     switch (props.currentPage) {
         case 1:
             pagCoef = 1
-            break;
-        case props.totalPages:
-            pagCoef = -1
-            break;
-        default:
+            break
+        case 2:
             pagCoef = 0
+            break
+        case props.totalPages:
+        default:
+            pagCoef = -1
     }
+    const pagination = []
+    pagination.push(props.currentPage - 1 + pagCoef)
+    for (let index = -1; index < 2 && index < props.totalPages - 1; index++) {
+        pagination.push(props.currentPage + index + pagCoef)
+    }
+    pagination.push(props.currentPage + 1 + pagCoef)
     return (
         <div className="vh-100">
             <h4 className="d-flex">{params.entityName.replace(/^./, params.entityName[0].toUpperCase())}
-                <div className="btn-group w-50 ms-auto me-2">
+                <div className="btn-group w-50 ms-auto me-2 row">
                     {isAuthenticated && params.entityName !== 'substances'
-                        && <NavLink to={`/add/${params.entityName}`} className="btn btn-outline-dark col-2 border-0 border-bottom rounded-0">Add new</NavLink>
+                        && <NavLink to={`/add/${params.entityName}`} className="btn btn-outline-dark col-6 col-md-2 border-0 border-bottom rounded-0">Add new</NavLink>
                     }
-                    <button onClick={() => navigate(-1)} className="btn btn-outline-dark col-2 border-0 border-bottom rounded-0">Back</button>
+                    <button onClick={() => navigate(-1)} className="btn btn-outline-dark col-6 col-md-2 border-0 border-bottom rounded-0">Back</button>
                     {props.content
                         && <>
                             <a href={`data:application/octet-stream,${encodeURIComponent(JSON.stringify(props.content))}`}
                                     download={`${Date.now() + params.entityName}.txt`}
-                                    className="btn btn-outline-dark col-2 border-0 border-bottom">
+                                    className="btn btn-outline-dark col-6 col-md-2 border-0 border-bottom">
                                 Download
                             </a>
-                            <select id="order" onChange={(event) =>
+                            <select id="order" onChange={event =>
                                     props.updateContent({...props, order: event.target.value}, path, event)}
                                     defaultValue="Order"
-                                    className="btn btn-outline-dark col-2 border-0 border-bottom">
+                                    className="btn btn-outline-dark col-6 col-md-2 border-0 border-bottom">
                                 <option disabled hidden>Order</option>
                                 {Children.toArray([...Object.entries({true : 'ascendent', false : 'descendent'})].map(e =>
                                     <option value={e[0]}>{e[1]}</option>
                                 ))}
                             </select>
-                            <select id="print-by" onChange={(event) =>
+                            <select id="print-by" onChange={event =>
                                     props.updateContent({...props, printBy: +event.target.value}, path, event)}
                                     defaultValue="Print by"
-                                    className="btn btn-outline-dark col-2 border-0 border-bottom rounded-0">
+                                    className="btn btn-outline-dark col-6 col-md-2 border-0 border-bottom rounded-0">
                                 <option disabled hidden>Print by</option>
                                 {Children.toArray([...Array(3).keys()].map(i =>
                                     <option value={(i + 1) * 20}>{(i + 1) * 20}</option>
@@ -83,7 +90,7 @@ const List = (props) => {
                             <tr>
                                 <th className="p-0">
                                     <button name="name-order"
-                                            onClick={(event) =>
+                                            onClick={event =>
                                                 props.updateContent({...props, localOrder: !props.localOrder}, path, event)}
                                             className="btn btn-outline-dark border-0 rounded-0 w-100 text-start p-3">
                                         Name {props.localOrder ? <>&darr;</> : <>&uarr;</>}
@@ -125,27 +132,22 @@ const List = (props) => {
                     </table>
                     {props.totalPages > 1
                         && <ul className="pagination mx-auto">
-                            {Children.toArray([
-                                    props.currentPage - 1 + pagCoef
-                                    , props.currentPage - 1 + pagCoef
-                                    , props.currentPage + pagCoef
-                                    , props.currentPage + 1 + pagCoef
-                                    , props.currentPage + 1 + pagCoef
-                                ].map((pageNum, index) => {
+                            {Children.toArray(pagination
+                                .map((pageNum, index) => {
                                     switch (index) {
                                         case 0:
-                                            return pagCoef !== 1
+                                            return props.currentPage !== 1
                                                 && <li className="page-item">
-                                                    <button onClick={(event) =>
+                                                    <button onClick={event =>
                                                                 props.updateContent({...props, currentPage: pageNum - pagCoef}, path, event)}
                                                             className="page-link bg-dark text-white rounded-0">
                                                         Back
                                                     </button>
                                                 </li>
-                                        case 4:
-                                            return pagCoef !== -1
+                                        case pagination.length - 1:
+                                            return props.currentPage !== props.totalPages
                                                 && <li className="page-item">
-                                                    <button onClick={(event) =>
+                                                    <button onClick={event =>
                                                                 props.updateContent({...props, currentPage: pageNum - pagCoef}, path, event)}
                                                             className="page-link bg-dark text-white rounded-0">
                                                         Forward
@@ -153,7 +155,7 @@ const List = (props) => {
                                                 </li>
                                         default:
                                             return <li className="page-item">
-                                                    <button onClick={(event) =>
+                                                    <button onClick={event =>
                                                                 props.updateContent({...props, currentPage: pageNum}, path, event)}
                                                             className="page-link bg-dark text-white rounded-0">
                                                         {pageNum.toString()}
@@ -183,7 +185,12 @@ const mapDispatchToProps = (dispatch) => {
     return {
         updateContent: async (stateCopy, path, event = null) => {
             event?.preventDefault()
-            if (event?.target.name !== 'name-order') {                
+            if (event?.target.name !== 'name-order') {
+                if (stateCopy.currentPage <= 0) {
+                    stateCopy.currentPage = 1
+                } else if (stateCopy.currentPage > stateCopy.totalPages) {
+                    stateCopy.currentPage = stateCopy.totalPages
+                }
                 const data = await getRecords(path, stateCopy.order, stateCopy.printBy, stateCopy.currentPage)
                 if (!data) {
                     return

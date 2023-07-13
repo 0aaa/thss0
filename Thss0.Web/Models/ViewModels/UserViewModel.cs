@@ -1,4 +1,4 @@
-﻿namespace Thss0.Web.Models.ViewModels.CRUD
+﻿namespace Thss0.Web.Models.ViewModels
 {
     public class UserViewModel
     {

@@ -1,6 +1,6 @@
 import { Children } from 'react'
 import { NavLink, Route, Routes, useNavigate } from 'react-router-dom'
-import App from '../App'
+// import App from '../App'
 import Login from './auth/login'
 import Register from './auth/register'
 import Logout from './auth/logout'
@@ -99,7 +99,7 @@ const Navigation = () => {
             </div>
         </nav>
         <Routes>
-            <Route exact path="/" element={App()} />
+            {/* <Route exact path="/" element={App()} /> */}
             {isAuthenticated
                 && <>
                     <Route path="/logout" element={<Logout />} />

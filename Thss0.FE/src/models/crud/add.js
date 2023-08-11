@@ -14,7 +14,7 @@ class Add extends React.Component {
         }
     }
     async componentDidMount() {
-        let data = (await getRecords(this.props.params.entityName, this.props.order, this.props.printBy, this.props.currentPage))
+        let data = await getRecords(this.props.params.entityName, this.props.order, this.props.printBy, this.props.currentPage)
         if (!data || !data.content[0]) {
             return
         }
@@ -32,22 +32,61 @@ class Add extends React.Component {
     async updateDatalist(event) {
         event.preventDefault()
         this.props.updateContent({...this.props}, event)
-        const datalist = document.getElementById(`${event.target.id}-list`)
+        const datalist = event.target.parentNode
         if (['departmentNames', 'userNames', 'procedure', 'resultNames', 'procedureNames'].includes(event.target.id)
                 && event.target.value.length > 3 && datalist) {
             const data = await getRecords(`search/${event.target.id}/${encodeURIComponent(event.target.value)}`)
             datalist.innerHTML = ''
+            datalist.appendChild(event.target)
             let optionToAdd = null
             for (let index = 0; index < data?.content.length; index++) {
-                optionToAdd = document.createElement('option')
+                optionToAdd = document.createElement('div')
                 optionToAdd.innerHTML = data.content[index].name ?? data.content[index].userName ?? data.content[index].content
+                optionToAdd.className = 'border bg-white p-2'
                 datalist.appendChild(optionToAdd)
             }
+            this.drag([...datalist.childNodes].filter(c => c.tagName === 'DIV'))
         }
+    }
+    drag(dataListOptions) {
+        var dragObj = null
+        var sourceX = 0
+        var sourceY = 0
+        for (let index = 0; index < dataListOptions.length; index++) {
+            draggable()
+            function draggable() {
+                if (dataListOptions[index]) {
+                    dataListOptions[index].onmousedown = () => {
+                        dataListOptions[index].style.position = 'fixed'
+                        sourceX = dataListOptions[index].style.left
+                        sourceY = dataListOptions[index].style.top
+                        dragObj = dataListOptions[index]
+                    }
+                }
+            }
+            document.onmouseup = event => {
+                var t = document.getElementById('target')
+                if (event.pageX > t.offsetLeft && event.pageX < t.offsetLeft + t.offsetWidth
+                        && event.pageY > t.offsetTop && event.pageY < t.offsetTop + t.offsetHeight) {
+                    console.log('in')
+                } else if (dragObj) {
+                    dragObj.style.left = sourceX
+                    dragObj.style.top = sourceY
+                    dragObj.style.position = 'static'
+                }
+                dragObj = null
+            }
+            document.onmousemove = event => {
+                if (dragObj) {                    
+                    dragObj.style.left = `${event.pageX}px`
+                    dragObj.style.top = `${event.clientY}px`
+                }
+            }
+        }
+        console.log(dragObj)
     }
     componentDidUpdate() {
         if (!this.props.content || this.props.content?.length > 1) {
-            // this.props.updateContent({ ...this.props, totalPages: this.state.keys.length, currentPage: 1 })
             this.props.updateContent({ ...this.props, currentPage: 1 })
         }
     }
@@ -84,27 +123,28 @@ class Add extends React.Component {
                         <button onClick={() => this.props.navigate(-1)} className="btn btn-outline-dark border-0 border-bottom rounded-0 col-2 ms-auto">Back</button>
                     </h5>
                     <div id="details-error" className="alert alert-danger d-none"></div>
-                    {Children.toArray(this.state.keys.map(key =>
-                        <>
-                            <span id={`${key}-error`} className="d-none"></span>
-                            <dl>
-
-                                <dt className={this.state.keys.indexOf(key) > 0 ? 'd-none' : ''}>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</dt>
-                                <dd>
-                                    {/* {this.props.content && this.props.content[0] && this.props.content[0][key]?.length > 0
-                                        ? key.includes('Names')
+<div id='target' style={{height: '80px'}} className='border'>
+                        {Children.toArray(this.state.keys.map(key =>
+                            <>
+                                <span id={`${key}-error`} className="d-none"></span>
+                                <dl>
+                                    <dt className={this.state.keys.indexOf(key) > 0 ? 'd-none' : ''}>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</dt>
+                                    <dd>
+                                        {/* {this.props.content && this.props.content[0] && this.props.content[0][key]?.length > 0
+                                            ? key.includes('Names')
                                             ? Children.toArray(this.props.content[0][key].split('\n').filter(e => e !== '').map((_, i) =>
-                                                this.props.content[0][key].split('\n')[i]))
+                                            this.props.content[0][key].split('\n')[i]))
                                             : key === 'password'
-                                                ? this.props.content[0]['password'].replace(/\S/g, '*')
-                                                :  this.props.content[0][key]
-                                        : ''
-                                    } */}
-                                    {this.getDdInner(key)}
-                                </dd>
-                            </dl>
-                        </>
-                    ))}
+                                                    ? this.props.content[0]['password'].replace(/\S/g, '*')
+                                                    :  this.props.content[0][key]
+                                                    : ''
+                                                } */}
+                                        {this.getDdInner(key)}
+                                    </dd>
+                                </dl>
+                            </>
+                        ))}
+                    </div>
                 </div>
                 <form onSubmit={event => this.props.handleAdd(event, this.props.params.entityName, this.state.keys.length)}
                         className="w-50">
@@ -121,21 +161,16 @@ class Add extends React.Component {
                                     <div className="card-img-overlay">
                                         {key === 'content'
                                         ? <>
-                                        <div className="d-flex">
-                                            <label htmlFor={key} className="col-form-label ps-2 text-white">Content</label>
-                                            <button type="button" data-bs-toggle="modal" data-bs-target="#devicesModal"
-                                                    className="btn btn-outline-dark border-0 border-bottom rounded-0 mb-1 ms-auto text-white">
-                                                Find devices
-                                            </button>
-                                        </div>
+                                            <div className="d-flex">
+                                                <button type="button" data-bs-toggle="modal" data-bs-target="#devicesModal"
+                                                        className="btn btn-outline-dark border-0 border-bottom rounded-0 mb-1 ms-auto text-white">
+                                                    Find devices
+                                                </button>
+                                            </div>
                                             <textarea id="content" onChange={event => this.updateDatalist(event)}
                                                 placeholder="Content" className="form-control border-0 rounded-0"/>
                                         </>
                                         : <>
-                                            <label htmlFor={key} className="col-form-label ps-2">
-                                                {key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}
-                                            </label>
-                                            {/* <input type={key.endsWith('Time') ? 'datetime-local' : 'text'} id={key} list={`${key}-list`} */}
                                             <input type={this.getInputType(key)} id={key} list={`${key}-list`}
                                                 onChange={event => this.updateDatalist(event)}
                                                 placeholder={key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}

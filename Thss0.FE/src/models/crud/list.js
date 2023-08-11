@@ -48,22 +48,22 @@ const List = (props) => {
     return (
         <div className="vh-100">
             <h4 className="d-flex">{params.entityName.replace(/^./, params.entityName[0].toUpperCase())}
-                <div className="btn-group w-50 ms-auto me-2 row">
+                <div className="btn-group w-75 d-flex flex-wrap ms-auto me-2">
                     {isAuthenticated && params.entityName !== 'substances'
-                        && <NavLink to={`/add/${params.entityName}`} className="btn btn-outline-dark col-6 col-md-2 border-0 border-bottom rounded-0">Add new</NavLink>
+                        && <NavLink to={`/add/${params.entityName}`} className="btn btn-outline-dark border-0 border-bottom rounded-0">Add new</NavLink>
                     }
-                    <button onClick={() => navigate(-1)} className="btn btn-outline-dark col-6 col-md-2 border-0 border-bottom rounded-0">Back</button>
+                    <button onClick={() => navigate(-1)} className="btn btn-outline-dark border-0 border-bottom rounded-0">Back</button>
                     {props.content
                         && <>
                             <a href={`data:application/octet-stream,${encodeURIComponent(JSON.stringify(props.content))}`}
                                     download={`${Date.now() + params.entityName}.txt`}
-                                    className="btn btn-outline-dark col-6 col-md-2 border-0 border-bottom">
+                                    className="btn btn-outline-dark border-0 border-bottom">
                                 Download
                             </a>
                             <select id="order" onChange={event =>
                                     props.updateContent({...props, order: event.target.value}, path, event)}
                                     defaultValue="Order"
-                                    className="btn btn-outline-dark col-6 col-md-2 border-0 border-bottom">
+                                    className="btn btn-outline-dark border-0 border-bottom">
                                 <option disabled hidden>Order</option>
                                 {Children.toArray([...Object.entries({true : 'ascendent', false : 'descendent'})].map(e =>
                                     <option value={e[0]}>{e[1]}</option>
@@ -72,7 +72,7 @@ const List = (props) => {
                             <select id="print-by" onChange={event =>
                                     props.updateContent({...props, printBy: +event.target.value}, path, event)}
                                     defaultValue="Print by"
-                                    className="btn btn-outline-dark col-6 col-md-2 border-0 border-bottom rounded-0">
+                                    className="btn btn-outline-dark border-0 border-bottom rounded-0">
                                 <option disabled hidden>Print by</option>
                                 {Children.toArray([...Array(3).keys()].map(i =>
                                     <option value={(i + 1) * 20}>{(i + 1) * 20}</option>

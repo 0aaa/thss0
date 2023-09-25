@@ -5,13 +5,11 @@ import { UseRedirect } from '../config/hooks'
 import { HOME_PATH } from '../config/consts'
 import { Modal } from 'bootstrap'
 
-const Devices = (props) => {
+const Devices = props => {
     if (!sessionStorage.getItem(AUTH_TOKEN)) {
         UseRedirect(HOME_PATH)
         const modal = document.getElementById('loginModal')
-        if (modal) {
-            new Modal(modal).show()
-        }
+        modal && new Modal(modal).show()
     }
     const devicesModal = document.getElementById('devices-body')
     if (!devicesModal) {
@@ -30,8 +28,8 @@ const Devices = (props) => {
             return
         }
         devicesModal.innerHTML
-            = `${devices.content
-                ? `<table class="table">
+            = `${(devices.content
+                && `<table class="table">
                     <tbody>
                         ${Children.toArray(devices.content.map(device =>
                                 `<tr>
@@ -47,8 +45,8 @@ const Devices = (props) => {
                                 </tr>`
                             ).join(''))}
                     </tbody>
-                </table>`
-                : `<div class="h-75 d-flex justify-content-center align-items-center gap-1">
+                </table>`)
+                || `<div class="h-75 d-flex justify-content-center align-items-center gap-1">
                     ${Children.toArray([...Array(3).keys()].map(() =>
                         `<div class="spinner-grow text-primary" role="status">
                             <span class="visually-hidden">Loading...</span>
@@ -60,7 +58,7 @@ const Devices = (props) => {
             if (!deviceBtn) {
                 continue
             }
-            deviceBtn.addEventListener('click', async (event) => {
+            deviceBtn.addEventListener('click', async event => {
                 event.preventDefault()
                 await handleDevice({...props}, devices.content[index].name, () => event.preventDefault())
             })

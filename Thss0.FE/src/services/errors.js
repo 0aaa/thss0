@@ -2,14 +2,12 @@ import { UseToast } from "../config/hooks"
 
 async function handleErrors(fetchResult) {
     const err = await fetchResult.json()
-    if (err) {
-        printErrors(err)
-    }
+    err && printErrors(err)
 }
 
 function printErrors(err) {
     let errorSpan = null
-    for (var e in err) {
+    for (const e in err) {
         errorSpan = document.getElementById(`${e.replace(/^./, e[0].toLowerCase())}-error`)
         UseToast(err[e])
         if (errorSpan) {            

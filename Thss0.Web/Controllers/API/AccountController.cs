@@ -108,8 +108,8 @@ namespace Thss0.Web.Controllers.API
                     Id = Guid.NewGuid().ToString()
                     , Name = $"procedure{i}"
                     , CreationTime = DateTime.Now
-                    , RealizationTime = DateTime.Now
-                    , NextProcedureTime = DateTime.Now
+                    , BeginTime = new DateTime(2023, 11, 8, 12 + i, 0, 0)
+                    , EndTime = new DateTime(2023, 11, 8, 12 + i, 15, 0)
                     , Result = new Result
                     {
                         Id = Guid.NewGuid().ToString()

@@ -8,7 +8,7 @@ import { UseRedirect, UseUpdate } from '../../config/hooks'
 import { HOME_PATH } from '../../config/consts'
 import { Modal } from 'bootstrap'
 
-const List = (props) => {
+const List = props => {
     const params = useParams()
     const navigate = useNavigate()
     const isAuthenticated = sessionStorage.getItem(AUTH_TOKEN)
@@ -22,9 +22,7 @@ const List = (props) => {
     if (!isAuthenticated && ['users/client', 'procedures', 'results'].includes(path)) {
         UseRedirect(HOME_PATH)
         const modal = document.getElementById('loginModal')
-        if (modal) {
-            new Modal(modal).show()
-        }
+        modal && new Modal(modal).show()
     }
     UseUpdate(props, path)
     let pagCoef = 0
@@ -82,8 +80,8 @@ const List = (props) => {
                     }
                 </div>
             </h4>
-            {props.content
-                ? <div className="d-flex flex-column">
+            {(props.content
+                && <div className="d-flex flex-column">
                     <div id="list-error" className="alert alert-danger d-none"></div>
                     <table className="table">
                         <thead>
@@ -93,7 +91,7 @@ const List = (props) => {
                                             onClick={event =>
                                                 props.updateContent({...props, localOrder: !props.localOrder}, path, event)}
                                             className="btn btn-outline-dark border-0 rounded-0 w-100 text-start p-3">
-                                        Name {props.localOrder ? <>&darr;</> : <>&uarr;</>}
+                                        Name {(props.localOrder && <>&darr;</>) || <>&uarr;</>}
                                     </button>
                                 </th>
                                 {isAuthenticated && params.entityName !== 'substances'
@@ -166,8 +164,8 @@ const List = (props) => {
                             }
                         </ul>
                     }
-                </div>
-                : <div className="h-75 d-flex justify-content-center align-items-center gap-1">
+                </div>)
+                || <div className="h-75 d-flex justify-content-center align-items-center gap-1">
                     {Children.toArray([...Array(3).keys()].map(() =>
                         <div className="spinner-grow text-primary" role="status">
                             <span className="visually-hidden">Loading...</span>
@@ -179,9 +177,9 @@ const List = (props) => {
     )
 }
 
-const mapStateToProps = (state) => { return state }
+const mapStateToProps = state => state
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
     return {
         updateContent: async (stateCopy, path, event = null) => {
             event?.preventDefault()

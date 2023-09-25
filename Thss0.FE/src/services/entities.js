@@ -3,10 +3,10 @@ import { UseToast } from '../config/hooks'
 import { eraseErrors, handleErrors } from './errors'
 
 async function getRecords(path, globalOrder, printBy, currentPage) {
-    globalOrder = globalOrder ? `/${globalOrder}` : ''
-    printBy = printBy ? `/${printBy}` : ''
-    currentPage = currentPage ? `/${currentPage}` : ''
-    path += path === 'users' ? '/client' : ''
+    globalOrder = (globalOrder && `/${globalOrder}`) || ''
+    printBy = (printBy && `/${printBy}`) || ''
+    currentPage = (currentPage && `/${currentPage}`) || ''
+    path += (path === 'users' && '/client') || ''
     const fetchResult = await fetch(API_URL + path + globalOrder + printBy + currentPage, {
         method: 'GET'
         , headers: {
@@ -23,7 +23,7 @@ async function getRecords(path, globalOrder, printBy, currentPage) {
     }
 }
 
-async function addRecord(path, crdntlsDctnry) {
+async function addRecord(path, addDictionary) {
     const fetchResult = await fetch(API_URL + path, {
         method: 'POST'
         , headers: {
@@ -31,7 +31,7 @@ async function addRecord(path, crdntlsDctnry) {
             , 'Content-Type': 'application/json'
             , 'Authorization': `bearer ${sessionStorage.getItem(AUTH_TOKEN)}`
         }
-        , body: JSON.stringify(crdntlsDctnry)
+        , body: JSON.stringify(addDictionary)
     })
     if (fetchResult.ok) {
         eraseErrors()

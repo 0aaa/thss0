@@ -3,7 +3,7 @@ function appReducer(state, action) {
         case 'updateContent':
             return {
                 ...state
-                , content: [...action.content]?.sort((a, b) => action.localOrder ? a.name?.localeCompare(b.name) : b.name?.localeCompare(a.name))
+                , content: [...action.content]?.sort((a, b) => (action.localOrder && a.name?.localeCompare(b.name)) || b.name?.localeCompare(a.name))
                 , totalPages: action.totalPages
                 , localOrder: action.localOrder
                 , currentPage: action.currentPage

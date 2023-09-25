@@ -9,13 +9,13 @@ namespace Thss0.Web.Extensions
         const ushort MAX_RESULT_GAP = 5;
         private readonly string[] _departmentProperties = { "Name" };
         private readonly string[] _userProperties = { "UserName", "DoB", "PoB" };
-        private readonly string[] _procedureProperties = { "Name", "RealizationTime", "NextProcedureTime" };
+        private readonly string[] _procedureProperties = { "Name", "BeginTime", "EndTime" };
         private readonly string[] _resultProperties = { "ObtainmentTime", "Content" };
 
         public void Validation(ModelStateDictionary state, object viewModel)
         {
             var type = viewModel.GetType();
-            var propertyNames = new string[0];
+            var propertyNames = Array.Empty<string>();
             string value;
             switch (type.Name)
             {
@@ -36,9 +36,16 @@ namespace Thss0.Web.Extensions
             for (ushort i = 0; i < properties.Length; i++)
             {
                 value = properties[i].GetValue(viewModel)?.ToString() ?? "";
-                if (properties[i].Name.Contains("Time") && value != "" && DateTime.Parse(value) < DateTime.Now.AddMinutes(MAX_RESULT_GAP))
+                if (properties[i].Name.Contains("Time") && value != "")
                 {
-                    state.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} cannot be less than the current time");
+                    if (DateTime.Parse(value) < DateTime.Now.AddMinutes(MAX_RESULT_GAP))
+                    {
+                        state.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} cannot be less than the current time");
+                    }
+                    if (DateTime.Parse(value).Minute % 15 != 0)
+                    {
+                        state.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} minutes must be multiple of 15");                        
+                    }
                 }
                 else if (!properties[i].Name.Contains("Time") && value == "")
                 {
@@ -51,7 +58,7 @@ namespace Thss0.Web.Extensions
         {
             var sourceType = source.GetType();
             var destType = dest.GetType();
-            var propertyNames = new string[0];
+            var propertyNames = Array.Empty<string>();
             switch (sourceType.Name)
             {
                 case "DepartmentViewModel":
@@ -95,7 +102,7 @@ namespace Thss0.Web.Extensions
         {
             var sourceType = source.GetType();
             var destType = dest.GetType();
-            var propertyNames = new string[0];
+            var propertyNames = Array.Empty<string>();
             switch (sourceType.Name)
             {
                 case "DepartmentProxy":

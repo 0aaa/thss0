@@ -5,9 +5,10 @@
         public string Id { get; set; } = "";
         public string Name { get; set; } = "";
         public string CreationTime { get; set; } = "";
-        public string RealizationTime { get; set; } = "";
-        public string NextProcedureTime { get; set; } = "";
+        public string BeginTime { get; set; } = "";
+        public string EndTime { get; set; } = "";
 
+        public string NextProcedureId { get; set; } = "";
         public string Department { get; set; } = "";
         public string User { get; set; } = "";
         public string Result { get; set; } = "";

@@ -98,7 +98,7 @@ namespace Thss0.Web.Controllers.API
                 case "substanceNames":
                     json = new
                     {
-                        content = await new SubstancesController(_context).GetSubstance(toFind, false)
+                        content = new List<SubstanceViewModel>() { (await new SubstancesController(_context).GetSubstance(toFind, false)).Value ?? new SubstanceViewModel() }
                     };
                     break;
                 default:

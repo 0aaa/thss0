@@ -136,7 +136,7 @@ namespace Thss0.Web.Controllers.API
         {
             if (_userManager.Users == null)
             {
-                return BadRequest(new { err = "Entity set 'dbo.AspNetUsers' is null." });
+                return BadRequest(new { err = "Entity set \"dbo.AspNetUsers\" is null." });
             }
             var userToDelete = await _userManager.FindByIdAsync(id);
             if (userToDelete != null)

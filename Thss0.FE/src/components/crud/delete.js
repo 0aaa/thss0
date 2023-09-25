@@ -7,7 +7,7 @@ import { deleteRecord, getRecords } from '../../services/entities'
 class Delete extends React.Component {
     constructor(props) {
         super(props)
-        this.path = props.params.entityName + '/' + props.params.id
+        this.path = `${props.params.entityName}/${props.params.id}`
         this.state = {
             content: []
         }
@@ -34,15 +34,15 @@ class Delete extends React.Component {
                         && <dl>
                             <dt>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</dt>
                             <dd>
-                                {this.state.content[key].length > 0
-                                    ? ['department', 'user', 'procedure', 'result'].includes(key)
-                                        ? Children.toArray(this.state.content[key].split('\n').filter(e => e !== '').map((_, i) =>
+                                {(this.state.content[key].length > 0
+                                    && (['department', 'user', 'procedure', 'result'].includes(key)
+                                        && Children.toArray(this.state.content[key].split('\n').filter(e => e !== '').map((_, i) =>
                                         <>
-                                                {this.state.content[key + 'Names'].split('\n')[i]}
+                                                {this.state.content[`${key}Names`].split('\n')[i]}
                                                 <br/>
-                                            </>))
-                                        : this.state.content[key]
-                                    : 'Empty'
+                                            </>)))
+                                        || this.state.content[key])
+                                    || 'Empty'
                                 }
                             </dd>
                         </dl>
@@ -51,19 +51,17 @@ class Delete extends React.Component {
         )
     }
 }
-const DeleteRouter = (props) => <Delete {...props} params={useParams()} navigate={useNavigate()} />
+const DeleteRouter = props => <Delete {...props} params={useParams()} navigate={useNavigate()} />
 
-const mapStateToProps = (state) => { return state }
+const mapStateToProps = state => state
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = dispatch => {
     return {
         handleDelete: async (event, stateCopy, path) => {
             event.preventDefault()
             await deleteRecord(path)
             const data = await getRecords(stateCopy.params.entityName)
-            if (data) {
-                dispatch(updateContent(data.content, stateCopy.totalPages, stateCopy.localOrder, stateCopy.currentPage))
-            }
+            data && dispatch(updateContent(data.content, stateCopy.totalPages, stateCopy.localOrder, stateCopy.currentPage))
             stateCopy.navigate(-1)
         }
     }

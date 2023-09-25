@@ -14,9 +14,10 @@ namespace Thss0.Web.Models.Entities
         [Required(ErrorMessage = "Department required")]
         [StringLength(64, ErrorMessage = "Wrong department length", MinimumLength = 2)]
         public DateTime CreationTime { get; set; } = DateTime.Now;
-        public DateTime RealizationTime { get; set; } = default;
-        public DateTime NextProcedureTime { get; set; } = default;
+        public DateTime BeginTime { get; set; } = default;
+        public DateTime EndTime { get; set; } = default;
 
+        public string NextProcedureId { get; set; } = "";
         [ForeignKey("ResultId")]
         public virtual Result? Result { get; set; }
         public virtual Department? Department { get; set; }

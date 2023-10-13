@@ -2,7 +2,7 @@ import API_URL, { AUTH_TOKEN, USERNAME } from '../config/consts'
 import { eraseErrors, handleErrors } from './errors'
 import { UseToast } from '../config/hooks'
 
-async function makeRegister(target) {
+const makeRegister = async target => {
     const fetchResult = await fetch(`${API_URL}user`, {
         method: 'POST'
         , headers: {
@@ -25,7 +25,7 @@ async function makeRegister(target) {
     return fetchResult.ok
 }
 
-async function getTokenAsync(target) {
+const getTokenAsync = async target => {
     const fetchResult = await fetch(`${API_URL}account/token`, {
         method: 'POST'
         , headers: {

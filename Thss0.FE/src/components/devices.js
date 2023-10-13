@@ -1,16 +1,16 @@
 import { Children } from 'react'
 import { getRecords } from '../services/entities'
-import { AUTH_TOKEN } from '../config/consts'
-import { UseRedirect } from '../config/hooks'
-import { HOME_PATH } from '../config/consts'
-import { Modal } from 'bootstrap'
+// import { AUTH_TOKEN } from '../config/consts'
+// import { UseRedirect } from '../config/hooks'
+// import { HOME_PATH } from '../config/consts'
+// import { Modal } from 'bootstrap'
 
 const Devices = props => {
-    if (!sessionStorage.getItem(AUTH_TOKEN)) {
-        UseRedirect(HOME_PATH)
-        const modal = document.getElementById('loginModal')
-        modal && new Modal(modal).show()
-    }
+    // if (!sessionStorage.getItem(AUTH_TOKEN)) {// Breaking of the Hooks rules.
+    //     UseRedirect(HOME_PATH)
+    //     const modal = document.getElementById('loginModal')
+    //     modal && new Modal(modal).show()
+    // }
     const devicesModal = document.getElementById('devices-body')
     if (!devicesModal) {
         return
@@ -65,10 +65,12 @@ const Devices = props => {
         }        
     })
 }
+
 const handleDevice = async (props, name, preventDefault) => {
     const data = await getRecords(`devices/${name}`)
     console.log(data)
     document.getElementById('content').value = data.content
-    props.updateContent(props, {target: {id: 'content', value: data.content}, preventDefault: () => preventDefault})
+    props.updateContent(props, { target: { id: 'content', value: data.content }, preventDefault: () => preventDefault })
 }
+
 export default Devices

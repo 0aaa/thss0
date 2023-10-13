@@ -6,18 +6,15 @@ import Register from './auth/register'
 import Logout from './auth/logout'
 import Error404 from './error-404'
 import Privacy from './privacy'
-import AddRouter from './crud/add'
-import Details from './crud/details'
 import EditRouter from './crud/edit'
-import DeleteRouter from './crud/delete'
 import { connect } from 'react-redux'
 import List from './crud/list'
 import { AUTH_TOKEN, USERNAME } from '../config/consts'
 import 'bootstrap/dist/css/bootstrap.css'
 import Schedule from './schedule'
+import { updateTheme } from '../actionCreator/actionCreator'
 
-
-const Navigation = () => {
+const Navigation = props => {
     const isAuthenticated = sessionStorage.getItem(AUTH_TOKEN)
     const navigate = useNavigate()
     // const entities = ['departments', 'clients', 'professionals', 'procedures', 'results', 'substances']
@@ -50,12 +47,12 @@ const Navigation = () => {
                                 <NavLink to="/c/substances" className="nav-link">Substances</NavLink>
                             </li>
                             <li className="nav-item">
-                                <NavLink to="/c/users/professional" className="nav-link">Professionals</NavLink>
+                                <NavLink to="/c/professional" className="nav-link">Professionals</NavLink>
                             </li>
                             {(isAuthenticated
                                 && <>
                                     <li className="nav-item">
-                                        <NavLink to="/c/users/client" className="nav-link">Clients</NavLink>
+                                        <NavLink to="/c/client" className="nav-link">Clients</NavLink>
                                     </li>
                                     <li className="nav-item">
                                         <NavLink to="/c/procedures" className="nav-link">Procedures</NavLink>
@@ -99,6 +96,14 @@ const Navigation = () => {
                             <li className="nav-item">
                                 <NavLink to="/privacy" className="nav-link">Privacy</NavLink>
                             </li>
+                            <li>
+                                <button onClick={event => props.updateTheme(event)} className="btn border-0 px-0">
+                                    {(props.btnColor === 'dark'
+                                        && <img src="/moon.ico" alt="Dark" />)
+                                        || <img src="/sun.ico" alt="Light" />
+                                    }
+                                </button>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -109,15 +114,12 @@ const Navigation = () => {
             {isAuthenticated
                 && <>
                     <Route path="/logout" element={<Logout />} />
-                    <Route path="/add/:entityName" element={<AddRouter />} />
                     <Route path="/edit/:entityName/:id" element={<EditRouter />} />
-                    <Route path="/delete/:entityName/:id" element={<DeleteRouter />} />
                 </>
             }
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/c/:entityName/:toFind?/:order?/:printBy?/:page?" element={<List />} />
-            <Route path="/details/:entityName/:id" element={<Details />} />
             <Route path="*" element={<Error404 />} />
         </Routes>
         <Register />
@@ -125,10 +127,23 @@ const Navigation = () => {
         <footer></footer>
     </div>
 }
+
 const mapStateToProps = state => {
     return {
         printBy: state.printBy
         , username: state.username
+        , btnColor: state.btnColor
     }
 }
-export default connect(mapStateToProps)(Navigation)
+
+const mapDispatchToProps = dispatch => {
+    return {
+        updateTheme: event => {
+            event.preventDefault()
+            document.documentElement.setAttribute('data-bs-theme', (document.documentElement.getAttribute('data-bs-theme') === 'light' && 'dark') || 'light')
+            dispatch(updateTheme())
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Navigation)

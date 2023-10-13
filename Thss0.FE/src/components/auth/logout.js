@@ -7,4 +7,5 @@ const Logout = () => {
     UseToast('Logged out')
     UseRedirect(HOME_PATH)
 }
+
 export default Logout

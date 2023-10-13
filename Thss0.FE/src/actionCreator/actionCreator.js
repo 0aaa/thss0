@@ -1,19 +1,35 @@
-function updateContent(content, totalPages, localOrder, currentPage) {
+const updateContent = stateCopy => {
     return {
         type: 'updateContent'
-        , content
-        , totalPages
-        , localOrder
-        , currentPage
+        , content: stateCopy.content
+        , currentIndex: stateCopy.currentIndex
+        , globalOrder: stateCopy.globalOrder
+        , inPageOrder: stateCopy.inPageOrder
+        , printBy: stateCopy.printBy
+        , totalPages: stateCopy.totalPages
+        , currentPage: stateCopy.currentPage
     }
 }
-function updateAuth(username = null) {
+const updateDetailed = detailedItem => {
+    return {
+        type: 'updateDetailed'
+        , detailedItem
+    }
+}
+const updateAuth = (username = null) => {
     return {
         type: 'updateAuth'
         , username
     }
 }
+const updateTheme = () => {
+    return {
+        type: 'updateTheme'
+    }
+}
 export {
     updateContent
+    , updateDetailed
     , updateAuth
+    , updateTheme
 }

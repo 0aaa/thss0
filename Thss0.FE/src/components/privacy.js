@@ -1,9 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 
-function Privacy() {
+const Privacy = () => {
     const navigate = useNavigate()
-    return (
-        <>
+    return <>
             <p>What is a Privacy Policy?
                 <br />
                 A Privacy Policy is a statement or a legal document that states how a company or website collects, handles and processes data of its customers and visitors. It explicitly describes whether that information is kept confidential, or is shared with or sold to third parties.
@@ -48,6 +47,6 @@ function Privacy() {
             </p>
             <button onClick={() => navigate(-1)} className="btn btn-outline-dark border-0 border-bottom rounded-0 col-2">Back</button>
         </>
-    )
 }
+
 export default Privacy

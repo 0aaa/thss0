@@ -2,11 +2,13 @@ import { AUTH_TOKEN, API_URL } from '../config/consts'
 import { UseToast } from '../config/hooks'
 import { eraseErrors, handleErrors } from './errors'
 
-async function getRecords(path, globalOrder, printBy, currentPage) {
+const getRecords = async (path, globalOrder, printBy, currentPage) => {
+    if (['professional', 'client'].includes(path.split('/')[0])) {        
+        path = `users/${path}`
+    }
     globalOrder = (globalOrder && `/${globalOrder}`) || ''
     printBy = (printBy && `/${printBy}`) || ''
     currentPage = (currentPage && `/${currentPage}`) || ''
-    path += (path === 'users' && '/client') || ''
     const fetchResult = await fetch(API_URL + path + globalOrder + printBy + currentPage, {
         method: 'GET'
         , headers: {
@@ -23,7 +25,7 @@ async function getRecords(path, globalOrder, printBy, currentPage) {
     }
 }
 
-async function addRecord(path, addDictionary) {
+const addRecord = async (path, addDictionary) => {
     const fetchResult = await fetch(API_URL + path, {
         method: 'POST'
         , headers: {
@@ -42,7 +44,7 @@ async function addRecord(path, addDictionary) {
     }
 }
 
-async function editRecord(path, crdntlsDctnry) {
+const editRecord = async (path, crdntlsDctnry) => {
     const fetchResult = await fetch(API_URL + path, {
         method: 'PUT'
         , headers: {
@@ -61,7 +63,7 @@ async function editRecord(path, crdntlsDctnry) {
     }
 }
 
-async function deleteRecord(path) {
+const deleteRecord = async path => {
     const fetchResult = await fetch(API_URL + path, {
         method: 'DELETE'
         , headers: {

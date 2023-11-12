@@ -30,7 +30,7 @@ namespace Thss0.Web.Controllers.API
         private async Task<ClaimsIdentity> GetIdentity(string name, string password)
         {
             var result = await _signInManager.PasswordSignInAsync(name, password, false, false);
-            var user = _signInManager.UserManager.Users.FirstOrDefault(u => u.UserName == name);
+            var user = _signInManager.UserManager.Users.FirstOrDefault(u => u.Name == name);
             if (result.Succeeded && user != null)
             {
                 return new ClaimsIdentity(
@@ -54,8 +54,8 @@ namespace Thss0.Web.Controllers.API
             {
                 await Initialize();
             }
-            var identity = await GetIdentity(user.UserName, user.Password);
-            if (identity.HasClaim(ClaimsIdentity.DefaultNameClaimType, user.UserName))
+            var identity = await GetIdentity(user.Name, user.Password);
+            if (identity.HasClaim(ClaimsIdentity.DefaultNameClaimType, user.Name))
             {
                 var token = new JwtSecurityToken(
                     issuer: AuthCredentials.ISSUER
@@ -92,9 +92,10 @@ namespace Thss0.Web.Controllers.API
                 }
                 user = new ApplicationUser
                 {
-                    UserName = rolesAndNames[i / 2] + i % 2
+                    Name = rolesAndNames[i / 2] + i % 2
                     , PhoneNumber = rolesAndNames[i / 2] + i % 2
                     , Email = $"{rolesAndNames[i / 2] + i % 2}@{rolesAndNames[i / 2] + i % 2}.com"
+                    , Photo = System.IO.File.ReadAllBytes($"{Directory.GetCurrentDirectory()}\\wwwroot\\img\\test_image_0.jpg")
                 };
                 userManager.CreateAsync(user, passwords[i / 2])
                         .ContinueWith(delegate

@@ -15,8 +15,8 @@ namespace Thss0.Web.Controllers.API
     {
         private ushort _dataMax = 0;
 
-        [HttpGet("{order:bool?}/{printBy:int?}/{page:int?}")]
-        public async Task<ActionResult<IEnumerable<ProcedureViewModel>>> GetDevices(bool order = true, int printBy = 20, int page = 1)
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ProcedureViewModel>>> GetDevices()
         {
             _dataMax = 0;
             string[] deviceNames = { "ECG", "X-Ray", "MRI", "CT", "UA", "EEG" };

@@ -1,8 +1,8 @@
 import { Children } from 'react'
-import { getRecords } from '../services/entities'
+import { getRecords } from '../../services/entities'
 import { connect } from 'react-redux'
-import { updateContent } from '../actionCreator/actionCreator'
-import { UseUpdate } from '../config/hooks'
+import { updateContent } from '../../actionCreator/actionCreator'
+import { UseUpdate } from '../../config/hooks'
 
 const Schedule = props => {
     // const path = `/departments/${params.id}`
@@ -14,16 +14,15 @@ const Schedule = props => {
     }
     let sourceCellIndex
     return <>
-        <select onChange={event =>
-            props.updateContent({ ...props, order: event.target.value }, path, event)}
-            defaultValue="Department"
-            className="btn btn-outline-dark border-0 border-bottom rounded-0">
+        <select onChange={event => props.updateContent({ ...props, order: event.target.value }, path, event)}
+                defaultValue="Department"
+                className="btn btn-outline-dark border-0 border-bottom rounded-0">
             <option disabled hidden>Department</option>
             {Children.toArray(props.content.map(d =>
                 <option value={d['id']}>{d['name']}</option>
             ))}
         </select>
-        <div id="list-error" className="alert alert-danger d-none"></div>
+        <div id="listError" className="alert alert-danger d-none"></div>
         <table className="table">
             <thead>
                 <tr>
@@ -53,34 +52,33 @@ const Schedule = props => {
 
 const mapStateToProps = state => state
 
-const mapDispatchToProps = dispatch => {
-    return {
-        updateContent: async (stateCopy, path) => {
-            const professionals = (await getRecords(path)).content
-            const procByProf = []
-            let procedureIds = []
-            for (let index = 0; index < professionals.length; index++) {
-                procByProf.push({ userName: professionals[index]['userName'], procedures: [] })
-                procedureIds = (await getRecords(`users/${professionals[index]['id']}`))['procedure'].split('\n')
-                for (let jndex = 0; jndex < procedureIds.length && procedureIds[jndex] !== ''; jndex++) {
-                    procByProf[index]['procedures'].push(await getRecords(`procedures/${procedureIds[jndex]}`))
-                    procByProf[index]['procedures'][jndex]['id'] = procedureIds[jndex]
-                }
-            }
-            if (procByProf) {
-                dispatch(updateContent({...stateCopy
-                    , content: procByProf
-                    , currentIndex: stateCopy.currentIndex
-                    , globalOrder: stateCopy.globalOrder
-                    , inPageOrder: stateCopy.inPageOrder
-                    , printBy: stateCopy.printBy
-                    , totalPages: stateCopy.totalPages
-                    , currentPage: stateCopy.currentPage
-                }))
+const mapDispatchToProps = dispatch => ({
+    updateContent: async (stateCopy, path) => {
+        const professionals = (await getRecords(path)).content
+        const procByProf = []
+        let procedureIds = []
+        for (let index = 0; index < professionals.length; index++) {
+            procByProf.push({ userName: professionals[index]['userName'], procedures: [] })
+            procedureIds = (await getRecords(`users/${professionals[index]['id']}`))['procedure'].split('\n')
+            for (let jndex = 0; jndex < procedureIds.length && procedureIds[jndex] !== ''; jndex++) {
+                procByProf[index]['procedures'].push(await getRecords(`procedures/${procedureIds[jndex]}`))
+                procByProf[index]['procedures'][jndex]['id'] = procedureIds[jndex]
             }
         }
-    }
-}
+        if (procByProf) {
+            dispatch(updateContent({...stateCopy
+                , content: procByProf
+                , currentIndex: stateCopy.currentIndex
+                , globalOrder: stateCopy.globalOrder
+                , inPageOrder: stateCopy.inPageOrder
+                , printBy: stateCopy.printBy
+                , totalPages: stateCopy.totalPages
+                , currentPage: stateCopy.currentPage
+            }))
+        }
+    }    
+})
+
 export default connect(mapStateToProps, mapDispatchToProps)(Schedule)
 
 const selectCell = (event, sourceCellIndex) => {

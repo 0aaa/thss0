@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using Thss0.Web.Config;
 using Thss0.Web.Data;
+using Thss0.Web.Models;
 using Thss0.Web.Models.ViewModels;
 
 namespace Thss0.Web.Controllers.API
@@ -21,8 +22,8 @@ namespace Thss0.Web.Controllers.API
             _client = new HttpClient();
         }
 
-        [HttpGet("{order:bool?}/{printBy:int?}/{page:int?}")]
-        public async Task<ActionResult<IEnumerable<SubstanceViewModel>>> GetSubstances(bool order = true, int printBy = 20, int page = 1)
+        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}/{toFind?}")]
+        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true, string toFind = "")
         {
             var content = new List<SubstanceViewModel>();
             JObject resJson;
@@ -41,16 +42,21 @@ namespace Thss0.Web.Controllers.API
                     , MarketingStartDate = DateTime.ParseExact(resJson["results"]?[0]?["marketing_start_date"]?.ToString()!, "yyyyMMdd", null).ToShortDateString()
                 });
             }
-            return Json(new
+            return Json(new Response
             {
-                content
+                Content = content
+                , TotalAmount = content.Count
             });
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<SubstanceViewModel>> GetSubstance(string id, bool isId = true)
+        public async Task<ActionResult<SubstanceViewModel>> Get(string id, bool isId = true)
         {
             var resJson = await HandleApi(id, isId);
+            if (resJson["content"]?.ToString() == "No content")
+            {
+                return NoContent();
+            }
             var drug = new SubstanceViewModel
             {
                 Id = resJson["results"]?[0]?["product_id"]?.ToString()!
@@ -62,15 +68,11 @@ namespace Thss0.Web.Controllers.API
                 , ProductType = resJson["results"]?[0]?["product_type"]?.ToString()!
                 , MarketingStartDate = DateTime.ParseExact(resJson["results"]?[0]?["marketing_start_date"]?.ToString()!, "yyyyMMdd", null).ToShortDateString()
             };
-            if (drug == null)
-            {
-                return NoContent();
-            }
             return drug;
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteSubstance(string id)
+        public async Task<ActionResult> Delete(string id)
         {
             var procedure = await _context.Procedures.FirstOrDefaultAsync(p => p.Substance.Any(s => s.Id == id));
             if (procedure == null)
@@ -97,6 +99,7 @@ namespace Thss0.Web.Controllers.API
         private async Task<JObject> HandleApi(string identifier = "", bool isId = true, bool order = true, int printBy = 3, int page = 1)
         {
             var requestStr = $"https://api.fda.gov/drug/ndc.json?api_key={AuthCredentials.SUBSTANCES_API_KEY}";
+            string response;
             if (identifier != "")
             {
                 requestStr += $"&search={(isId ? "product_id" : "brand_name")}:{identifier}";
@@ -107,13 +110,14 @@ namespace Thss0.Web.Controllers.API
             }
             try
             {
-                var res = await _client.GetStringAsync(requestStr);
+                response = await _client.GetStringAsync(requestStr);
             }
             catch (System.Exception e)
             {
                 Console.WriteLine(e.Message);
+                return JObject.FromObject(new { content = "No content" });
             }
-            return JObject.Parse(await _client.GetStringAsync(requestStr) ?? "No content");
+            return JObject.Parse(response);
         }
     }
 }

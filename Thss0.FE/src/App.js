@@ -27,20 +27,11 @@ const App = () =>
           </NavLink>
         </li>
         <li className="nav-item col-12 col-md-4">
-          <NavLink to="c/procedures" className="nav-link card m-0 p-0 h-100 text-white rounded-0">
-            <img src="img/procedureNames.jpg" alt="Procedures" className="card-img h-100 rounded-0" />
+          <NavLink to="schedule" className="nav-link card m-0 p-0 h-100 text-white rounded-0">
+            <img src="img/procedureNames.jpg" alt="Schedule" className="card-img h-100 rounded-0" />
             <div className="card-img-overlay">
-              <h3 className="card-title custom-shadow">Procedures</h3>
+              <h3 className="card-title custom-shadow">Schedule</h3>
               <div className="card-text custom-shadow fs-5">List of the procedures in a row</div>
-            </div>
-          </NavLink>
-        </li>
-        <li className="nav-item col-12 col-md-4">
-          <NavLink to="c/substances" className="nav-link card m-0 p-0 rounded-0">
-            <img src="img/substanceNames.jpg" alt="Substances" className="card-img opacity-50 rounded-0" />
-            <div className="card-img-overlay">
-              <h3 className="card-title">Substances</h3>
-              <div className="card-text fs-5">List of the allowed substances</div>
             </div>
           </NavLink>
         </li>
@@ -74,4 +65,5 @@ const App = () =>
       </ul>
     </div>
   </>
+
 export default App;

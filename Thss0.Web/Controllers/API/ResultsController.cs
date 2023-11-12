@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Extensions;
+using Thss0.Web.Models;
 using Thss0.Web.Models.Entities;
 using Thss0.Web.Models.ViewModels;
 
@@ -24,47 +25,51 @@ namespace Thss0.Web.Controllers.API
             _userManager = userManager;
         }
 
-        [HttpGet("{order:bool?}/{printBy:int?}/{page:int?}")]
+        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}/{toFind?}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<IEnumerable<ResultViewModel>>> GetResults(bool order = true, int printBy = 20, int page = 1)
+        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true, string toFind = "")
         {
-            var results = await _context.Results.ToListAsync();
-            if (!results.Any())
+            IEnumerable<Result> results;
+            if (toFind == "")
             {
-                return NoContent();
+                results = await _context.Results.ToListAsync();
             }
-            return Json(new
+            else
             {
-                content = (order ? results.OrderBy(r => r.ObtainmentTime) : results.OrderByDescending(r => r.ObtainmentTime))
+                results = await _context.Results.Where(r => r.Content != null && r.Content.Contains(toFind)).ToListAsync();
+            }
+            return Json(new Response
+            {
+                Content = (order ? results.OrderBy(r => r.ObtainmentTime) : results.OrderByDescending(r => r.ObtainmentTime))
                                                 .Skip((page - 1) * printBy).Take(printBy)
-                                                .Select(r => new ResultViewModel { Id = r.Id, ObtainmentTime = r.ObtainmentTime.ToString() })
-                , total_amount = await _context.Results.CountAsync()
+                                                .Select(r => new ViewModel { Id = r.Id, Name = r.ObtainmentTime.ToString() })
+                , TotalAmount = results.Count()
             });
         }
 
         [HttpGet("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<ResultViewModel>> GetResult(string id)
+        public async Task<ActionResult<ResultViewModel>> Get(string id)
         {
             var result = await _context.Results.FindAsync(id);
             if (result == null)
             {
                 return NotFound();
             }
-            return InitializeResult(result);
+            return Initialize(result);
         }
 
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<Result>> PostResult(ResultViewModel result)
+        public async Task<ActionResult<Result>> Post(ResultViewModel result)
         {
-            new EntityInitializer().Validation(ModelState, result);
+            new InitializationHelper().Validation(ModelState, result);
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
             var resultToAdd = new Result();
-            await InitializeResult(result, resultToAdd);
+            await Initialize(result, resultToAdd);
             await _context.Results.AddAsync(resultToAdd);
             try
             {
@@ -73,7 +78,7 @@ namespace Thss0.Web.Controllers.API
             catch (DbUpdateException e)
             {
                 Console.WriteLine(e.Message);
-                if (ResultExists(resultToAdd.Id))
+                if (Exists(resultToAdd.Id))
                 {
                     return Conflict();
                 }
@@ -83,7 +88,7 @@ namespace Thss0.Web.Controllers.API
 
         [HttpPut("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
-        public async Task<ActionResult> PutResult(string id, ResultViewModel result)
+        public async Task<ActionResult> Put(string id, ResultViewModel result)
         {
             if (id != result.Id)
             {
@@ -94,7 +99,7 @@ namespace Thss0.Web.Controllers.API
             {
                 return NotFound();
             }
-            await InitializeResult(result, resultToUpdate);
+            await Initialize(result, resultToUpdate);
             _context.Entry(resultToUpdate).State = EntityState.Modified;
             try
             {
@@ -103,7 +108,7 @@ namespace Thss0.Web.Controllers.API
             catch (DbUpdateConcurrencyException e)
             {
                 Console.WriteLine(e.Message);
-                if (!ResultExists(id))
+                if (!Exists(id))
                 {
                     return NotFound();
                 }
@@ -132,9 +137,9 @@ namespace Thss0.Web.Controllers.API
             return NoContent();
         }
 
-        private async Task<Result> InitializeResult(ResultViewModel source, Result dest)
+        private async Task<Result> Initialize(ResultViewModel source, Result dest)
         {
-            new EntityInitializer().InitializeEntity(ModelState, source, dest);
+            new InitializationHelper().InitializeEntity(source, dest);
             if (source.UserNames != "")
             {
                 await HandleUsers(source, dest);
@@ -157,7 +162,7 @@ namespace Thss0.Web.Controllers.API
                 {
                     user = new ApplicationUser
                     {
-                        UserName = usersArr[i]
+                        Name = usersArr[i]
                     };
                     result = await _userManager.CreateAsync(user);
                     if (!result.Succeeded)
@@ -185,9 +190,9 @@ namespace Thss0.Web.Controllers.API
             return dest;
         }
 
-        private ResultViewModel InitializeResult(Result source)
+        private ResultViewModel Initialize(Result source)
         {
-            var dest = (ResultViewModel)new EntityInitializer().InitializeViewModel(source, new ResultViewModel());
+            var dest = (ResultViewModel)new InitializationHelper().InitializeViewModel(source, new ResultViewModel());
             if (source.User != default)
             {
                 HandleUsers(source, dest);
@@ -205,11 +210,11 @@ namespace Thss0.Web.Controllers.API
             for (ushort i = 0; i < users.Count; i++)
             {
                 dest.User += $"{users.ElementAtOrDefault(i)?.Id}\n";
-                dest.UserNames += $"{users.ElementAtOrDefault(i)?.UserName}\n";
+                dest.UserNames += $"{users.ElementAtOrDefault(i)?.Name}\n";
             }
         }
 
-        private bool ResultExists(string id)
+        private bool Exists(string id)
             => _context.Results.Any(e => e.Id == id);
     }
 }

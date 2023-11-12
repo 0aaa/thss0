@@ -1,10 +1,8 @@
 namespace Thss0.Web.Models.ViewModels
 {
-    public class ResultViewModel
+    public class ResultViewModel : ViewModel
     {
-        public string Id { get; set; } = "";
         public string Content { get; set; } = "";
-        public string ObtainmentTime { get; set; } = "";
 
         public string User { get; set; } = "";
         public string Procedure { get; set; } = "";

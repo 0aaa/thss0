@@ -12,7 +12,10 @@ const appStore = configureStore({
         , currentPage: 1
         , detailedItem: {}
         , btnColor: (document.documentElement.getAttribute('data-bs-theme') === 'light' && 'dark') || 'light'
+        , modalName: ''
+        , offcanvasName: ''
     }
     , middleware: mw => mw({ serializableCheck: false })
 })
+
 export default appStore

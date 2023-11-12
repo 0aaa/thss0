@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Extensions;
+using Thss0.Web.Models;
 using Thss0.Web.Models.ViewModels;
 
 namespace Thss0.Web.Controllers.API
@@ -18,20 +19,16 @@ namespace Thss0.Web.Controllers.API
         public RolesController(RoleManager<IdentityRole> roleManager)
             => _roleManager = roleManager;
 
-        [HttpGet("{order:bool?}/{printBy:int?}/{page:int?}")]
-        public async Task<ActionResult<IEnumerable<RoleViewModel>>> GetRoles(bool order = true, int printBy = 20, int page = 1)
+        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}")]
+        public async Task<ActionResult<IEnumerable<ViewModel>>> GetRoles(int printBy = 20, int page = 1, bool order = true)
         {
             var roles = await _roleManager.Roles.ToListAsync();
-            if (!roles.Any())
+            return Json(new Response
             {
-                return NoContent();
-            }
-            return Json(new
-            {
-                content = (order ? roles.OrderBy(role => role.Name) : roles.OrderByDescending(role => role.Name))
+                Content = (order ? roles.OrderBy(role => role.Name) : roles.OrderByDescending(role => role.Name))
                                             .Skip((page - 1) * printBy).Take(printBy)
-                                            .Select(role => new RoleViewModel { Id = role.Id, Name = role.Name })
-                , total_amount = roles.Count
+                                            .Select(role => new ViewModel { Id = role.Id, Name = role.Name })
+                , TotalAmount = roles.Count
             });
         }
 
@@ -47,13 +44,13 @@ namespace Thss0.Web.Controllers.API
             {
                 return NotFound();
             }
-            return InitializeUser(role);
+            return InitializeRole(role);
         }
 
         [HttpPost]
         public async Task<ActionResult<RoleViewModel>> Post(string roleName)
         {
-            new EntityInitializer().Validation(ModelState, roleName);
+            new InitializationHelper().Validation(ModelState, roleName);
             if (ModelState.IsValid)
             {
                 var result = await _roleManager.CreateAsync(new IdentityRole { Name = roleName });
@@ -102,7 +99,7 @@ namespace Thss0.Web.Controllers.API
                 }
                 catch (Exception e)
                 {
-                    if (!RoleExists(role.Name))
+                    if (!Exists(role.Name))
                     {
                         return NotFound();
                     }
@@ -137,10 +134,10 @@ namespace Thss0.Web.Controllers.API
             return NotFound();
         }
 
-        private RoleViewModel InitializeUser(IdentityRole source)
-            => (RoleViewModel)new EntityInitializer().InitializeViewModel(source, new RoleViewModel());
+        private RoleViewModel InitializeRole(IdentityRole source)
+            => (RoleViewModel)new InitializationHelper().InitializeViewModel(source, new RoleViewModel());
 
-        private bool RoleExists(string roleName)
+        private bool Exists(string roleName)
             => _roleManager.Roles.Any(role => role.Name == roleName);
     }
 }

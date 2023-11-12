@@ -1,9 +1,7 @@
 namespace Thss0.Web.Models.ViewModels
 {
-    public class SubstanceViewModel
+    public class SubstanceViewModel : ViewModel
     {
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
         public string GenericName { get; set; } = "";
         public string ListingExpirationDate { get; set; } = "";
         public string MarketingCategory { get; set; } = "";

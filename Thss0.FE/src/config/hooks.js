@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Toast from 'bootstrap/js/dist/toast'
-import toast from '../components/toast'
+import toast from '../components/structural/toast'
 
 const UseRedirect = path => {
     const navigate = useNavigate()

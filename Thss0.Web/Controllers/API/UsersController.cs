@@ -6,10 +6,14 @@ using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Models.ViewModels;
 using Thss0.Web.Extensions;
 using Thss0.Web.Models.Entities;
+using Thss0.Web.Models;
+using System.Data;
 
 namespace Thss0.Web.Controllers.API
 {
     [Route("api/[controller]")]
+    [Route("api/professional")]
+    [Route("api/client")]
     [ApiController]
     public class UsersController : Controller
     {
@@ -18,33 +22,43 @@ namespace Thss0.Web.Controllers.API
         public UsersController(UserManager<ApplicationUser> userManager)
             => _userManager = userManager;
 
-        [HttpGet("{role?}/{order:bool?}/{printBy:int?}/{page:int?}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<IEnumerable<UserViewModel>>> GetUsers(string role = "client", bool order = true, int printBy = 20, int page = 1)
+        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}/{role?}")]
+        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true, string role = "client")
         {
-            var users = await _userManager.GetUsersInRoleAsync(role);
-            if (!users.Any())
+            IList<ApplicationUser> users;
+            if (role == "client")
             {
-                return NoContent();
+                users = await GetClients();
             }
-            return Json(new
+            else
             {
-                content = (order ? users.OrderBy(u => u.UserName) : users.OrderByDescending(u => u.UserName))
+                users = await GetProfessionals();
+            }
+            return Json(new Response
+            {
+                Content = (order ? users.OrderBy(u => u.Name) : users.OrderByDescending(u => u.Name))
                                             .Skip((page - 1) * printBy).Take(printBy)
-                                            .Select(u => new UserViewModel { Id = u.Id, UserName = u.UserName })
-                , total_amount = users.Count
+                                            .Select(u => new ViewModel { Id = u.Id, Name = u.Name })
+                , TotalAmount = users.Count
             });
         }
 
-        [HttpGet("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<UserViewModel>> GetUser(string id)
+        private async Task<IList<ApplicationUser>> GetClients()
+            => await _userManager.GetUsersInRoleAsync("client");
+
+        private async Task<IList<ApplicationUser>> GetProfessionals()
+            => await _userManager.GetUsersInRoleAsync("professional");
+
+        [HttpGet("{role}/{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
+        public async Task<ActionResult<UserViewModel>> Get(string role, string id)
         {
             if (id == null || _userManager.Users == null)
             {
                 return NotFound();
             }
-            var user = await _userManager.FindByIdAsync(id);
+            var user = (await _userManager.GetUsersInRoleAsync(role)).FirstOrDefault(user => user.Id == id);
             if (user == null)
             {
                 return NotFound();
@@ -56,15 +70,11 @@ namespace Thss0.Web.Controllers.API
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
         public async Task<ActionResult<UserViewModel>> Post(UserViewModel user)
         {
-            new EntityInitializer().Validation(ModelState, user);
+            new InitializationHelper().Validation(ModelState, user);
             if (ModelState.IsValid)
             {
-                var userToAdd = new ApplicationUser
-                {
-                    UserName = user.UserName
-                    , PhoneNumber = user.PhoneNumber
-                    , Email = user.Email
-                };
+                var userToAdd = new ApplicationUser();
+                InitializeUser(user, userToAdd);
                 var result = await _userManager.CreateAsync(userToAdd, user.Password);
                 if (!result.Succeeded)
                 {
@@ -155,9 +165,14 @@ namespace Thss0.Web.Controllers.API
             return NotFound();
         }
 
+        private void InitializeUser(UserViewModel source, ApplicationUser dest)
+        {
+            new InitializationHelper().InitializeEntity(source, dest);
+        }
+
         private async Task<UserViewModel> InitializeUser(ApplicationUser source)
         {
-            var dest = (UserViewModel)new EntityInitializer().InitializeViewModel(source, new UserViewModel());
+            var dest = (UserViewModel)new InitializationHelper().InitializeViewModel(source, new UserViewModel());
             dest.Role = (await _userManager.GetRolesAsync(source)).FirstOrDefault() ?? "No role";
             if (source.Procedure != null)
             {

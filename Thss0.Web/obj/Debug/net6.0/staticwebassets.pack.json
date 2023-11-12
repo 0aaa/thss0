@@ -29,8 +29,24 @@
       "PackagePath": "staticwebassets\\img\\substances.jpg"
     },
     {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\img\\test_image_0.jpg",
+      "PackagePath": "staticwebassets\\img\\test_image_0.jpg"
+    },
+    {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\img\\test_image_1.jpg",
+      "PackagePath": "staticwebassets\\img\\test_image_1.jpg"
+    },
+    {
       "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
+    },
+    {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\lib\\OpenAI\\launch.json",
+      "PackagePath": "staticwebassets\\lib\\OpenAI\\launch.json"
+    },
+    {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\lib\\OpenAI\\tasks.json",
+      "PackagePath": "staticwebassets\\lib\\OpenAI\\tasks.json"
     },
     {
       "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",

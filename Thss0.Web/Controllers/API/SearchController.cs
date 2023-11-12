@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Web;
 using Thss0.Web.Data;
+using Thss0.Web.Models;
 using Thss0.Web.Models.Entities;
 using Thss0.Web.Models.ViewModels;
 
@@ -19,39 +20,38 @@ namespace Thss0.Web.Controllers.API
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly List<ViewModel?> _totalResults;
+        private readonly string[] _entityTypes;
+        private int _typesCnt;
+        private IEnumerable<ViewModel?>? _searchResult;
 
         public SearchController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
+            _entityTypes = new[] { "departments", "users", "procedures", "results", "substances" };
+            _typesCnt = 0;
+            _totalResults = new List<ViewModel?>();
         }
 
-        [HttpGet("{entityName}/{toFind}/{order:bool?}/{printBy:int?}/{page:int?}")]
-        public async Task<ActionResult<IEnumerable<object>>> GetResults(string entityName, string toFind, bool order = true, int printBy = 20, int page = 1)
+        [HttpGet("{entityName}/{toFind}/{printBy:int?}/{page:int?}/{order:bool?}")]
+        public async Task<ActionResult<Response>> GetResults(string entityName, string toFind, int printBy = 20, int page = 1, bool order = true)
         {
-            object json;
+            object? json = null;
             toFind = HttpUtility.UrlDecode(toFind);
             switch (entityName)
             {
                 case "departments":
                 case "departmentNames":
-                    var departments = await _context.Departments.Where(d => d.Name != null && d.Name.Contains(toFind)).ToListAsync();
-                    var adjustedDepartments = (order ? departments.OrderBy(d => d.Name) : departments.OrderByDescending(d => d.Name))
-                                                    .Skip((page - 1) * printBy).Take(printBy)
-                                                    .Select(d => new DepartmentViewModel { Id = d.Id, Name = d.Name });
-                    json = new
-                    {
-                        content = adjustedDepartments
-                        , total_amount = adjustedDepartments.Count()
-                    };
+                    json = (Response?)((JsonResult?)(await new DepartmentsController(_context, _userManager).Get(toFind: toFind)).Result)?.Value;
                     break;
                 case "clients":
                 case "professionals":
                 case "users":
                 case "userNames":
-                    var properties = new[] { "Id", "UserName", "PhoneNumber", "Email", "DoB", "PoB"};
+                    var properties = new[] { "Id", "UserName", "PhoneNumber", "Email", "DoB", "PoB" };
                     var sourceProperties = typeof(ApplicationUser).GetProperties().Where(p => properties.Contains(p.Name)).ToArray();
-                    var users = new List<ApplicationUser>();
+                    List<ApplicationUser> users;
                     if (entityName == "professionals" || entityName == "clients")
                     {
                         users = (await _userManager.GetUsersInRoleAsync(Regex.Replace(entityName, ".$", ""))).ToList();
@@ -61,48 +61,50 @@ namespace Thss0.Web.Controllers.API
                         users = await _userManager.Users.ToListAsync();
                     }
                     users = users.Where(u => FindByString(u, sourceProperties, toFind)).ToList();
-                    var adjustedUsers = (order ? users.OrderBy(u => u.UserName) : users.OrderByDescending(u => u.UserName))
+                    var adjustedUsers = (order ? users.OrderBy(u => u.Name) : users.OrderByDescending(u => u.Name))
                                             .Skip((page - 1) * printBy).Take(printBy)
-                                            .Select(u => new UserViewModel { Id = u.Id, UserName = u.UserName });
-                    json = new
+                                            .Select(u => new ViewModel { Id = u.Id, Name = u.Name });
+                    json = new Response
                     {
-                        content = adjustedUsers
-                        , total_amount = adjustedUsers.Count()
+                        Content = adjustedUsers
+                        , TotalAmount = adjustedUsers.Count()
                     };
                     break;
                 case "procedures":
                 case "procedureNames":
-                    var procedures = await _context.Procedures.Where(p => p.Name != null && p.Name.Contains(toFind)).ToListAsync();
-                    var adjustedProcedures = (order ? procedures.OrderBy(p => p.Name) : procedures.OrderByDescending(p => p.Name))
-                                            .Skip((page - 1) * printBy).Take(printBy)
-                                            .Select(p => new ProcedureViewModel { Id = p.Id, Name = p.Name });
-                    json = new
-                    {
-                        content = adjustedProcedures
-                        , total_amount = adjustedProcedures.Count()
-                    };
+                    json = (Response?)((JsonResult?)(await new ProceduresController(_context, _userManager).Get(toFind: toFind)).Result)?.Value;
                     break;
                 case "results":
                 case "resultNames":
-                    var results = await _context.Results.Where(r => r.Content != null && r.Content.Contains(toFind)).ToListAsync();
-                    var adjustedResults = (order ? results.OrderBy(r => r.ObtainmentTime) : results.OrderByDescending(r => r.ObtainmentTime))
-                                                .Skip((page - 1) * printBy).Take(printBy)
-                                                .Select(r => new ResultViewModel { Id = r.Id, ObtainmentTime = r.ObtainmentTime.ToString(), Content = r.Content });
-                    json = new
-                    {
-                        content = adjustedResults
-                        , total_amount = adjustedResults.Count()
-                    };
+                    json = (Response?)((JsonResult?)(await new ResultsController(_context, _userManager).Get(toFind: toFind)).Result)?.Value;
                     break;
                 case "substances":
                 case "substanceNames":
-                    json = new
+                    var substance = await new SubstancesController(_context).Get(toFind, false);
+                    var substances = new Response
                     {
-                        content = new List<SubstanceViewModel>() { (await new SubstancesController(_context).GetSubstance(toFind, false)).Value ?? new SubstanceViewModel() }
+                        Content = new List<SubstanceViewModel>().AsEnumerable()
+                        , TotalAmount = 0
                     };
+                    if (substance.Value != null)
+                    {
+                        ((List<SubstanceViewModel>)substances.Content).Add(substance.Value);
+                        substances.TotalAmount = substances.Content.Count();
+                    }
+                    json = substances;
                     break;
-                default:
-                    return NoContent();
+            }
+            if ((_typesCnt > 0 && _typesCnt < _entityTypes.Length) || !_entityTypes.Contains(entityName))
+            {
+                _searchResult = ((Response?)((JsonResult?)(await GetResults(_entityTypes[_typesCnt++], toFind)).Result)?.Value)?.Content;
+                for (int i = 0; i < _searchResult?.Count(); i++)
+                {
+                    _totalResults.Add(_searchResult?.ElementAt(i));
+                }
+                if (!_entityTypes.Contains(entityName))
+                {
+                    json = new Response { Content = _totalResults, TotalAmount = _totalResults.Count };
+                }
             }
             return Json(json);
         }

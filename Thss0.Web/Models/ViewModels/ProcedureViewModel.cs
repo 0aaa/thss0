@@ -1,9 +1,7 @@
 ﻿namespace Thss0.Web.Models.ViewModels
 {
-    public class ProcedureViewModel
+    public class ProcedureViewModel : ViewModel
     {
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
         public string CreationTime { get; set; } = "";
         public string BeginTime { get; set; } = "";
         public string EndTime { get; set; } = "";

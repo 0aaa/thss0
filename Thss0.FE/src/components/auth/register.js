@@ -5,48 +5,32 @@ import { updateAuth } from '../../actionCreator/actionCreator'
 import { connect } from 'react-redux'
 
 const Register = props =>
-    <>
-        <div id="register-error" className="alert alert-danger d-none"></div>
-        <div className="modal fade" id="registerModal" tabIndex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
-            <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content rounded-0">
-                    <div className="modal-header">
-                        <h1 className="modal-title fs-5" id="registerModalLabel">Register</h1>
-                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form onSubmit={event => props.HandleRegister(event)}>
-                        <div className="modal-body">
-                            <input id="name" className="form-control border-0 border-bottom rounded-0" placeholder="Name" />
-                            <input type="email" id="email" className="form-control border-0 border-bottom rounded-0 my-1" placeholder="Email" />
-                            <input id="phone-number" className="form-control border-0 border-bottom rounded-0" placeholder="Phone number" />
-                            <input type="password" id="password" className="form-control border-0 border-bottom rounded-0 my-1" placeholder="Password" />
-                            <input type="password" id="password-repeat" className="form-control border-0 border-bottom rounded-0" placeholder="Password repeat" />
-                        </div>
-                        <div className="modal-footer btn-group">
-                            <button type="button" className={`btn btn-outline-${props.btnColor} border-0 border-bottom rounded-0`} data-bs-dismiss="modal">Close</button>
-                            <input type="submit" data-bs-dismiss="modal" value="Submit" className={`btn btn-outline-${props.btnColor} border-0 border-bottom rounded-0 mt-1`} />
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <form onSubmit={event => props.HandleRegister(event)}>
+        <div id="registerError" className="alert alert-danger d-none"></div>
+        <div className="modal-body">
+            <input id="name" className="form-control border-0 border-bottom rounded-0" placeholder="Name" />
+            <input type="email" id="email" className="form-control border-0 border-bottom rounded-0 my-1" placeholder="Email" />
+            <input id="phone-number" className="form-control border-0 border-bottom rounded-0" placeholder="Phone number" />
+            <input type="password" id="password" className="form-control border-0 border-bottom rounded-0 my-1" placeholder="Password" />
+            <input type="password" id="password-repeat" className="form-control border-0 border-bottom rounded-0" placeholder="Password repeat" />
         </div>
-    </>
+        <div className="modal-footer btn-group">
+            <button type="button" className={`btn btn-outline-${props.btnColor} border-0 border-bottom rounded-0`} data-bs-dismiss="modal">Close</button>
+            <input type="submit" value="Submit" className={`btn btn-outline-${props.btnColor} border-0 border-bottom rounded-0 mt-1`} data-bs-dismiss="modal" />
+        </div>
+    </form>
 
-const mapStateToProps = state => {
-    return { btnColor: state.btnColor }
-}
+const mapStateToProps = state => ({ btnColor: state.btnColor })
 
-const mapDispatchToProps = dispatch => {
-    return {
-        HandleRegister: async event => {
-            event.preventDefault()
-            !await makeRegister(event.target) && window.location.reload()
-            !await getTokenAsync(event) && window.location.reload()//
-            const navigate = useNavigate()
-            useEffect(() => navigate('/'))
-            dispatch(updateAuth())
-        }
+const mapDispatchToProps = dispatch => ({
+    HandleRegister: async event => {
+        event.preventDefault()
+        !await makeRegister(event.target) && window.location.reload()
+        !await getTokenAsync(event) && window.location.reload()//
+        const navigate = useNavigate()
+        useEffect(() => navigate('/'))
+        dispatch(updateAuth())
     }
-}
+})
 
 export default connect(mapStateToProps, mapDispatchToProps)(Register)

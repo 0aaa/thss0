@@ -24,6 +24,16 @@ const appReducer = (state, action) => {
                 ...state
                 , btnColor: (state.btnColor === 'light' && 'dark') || 'light'
             }
+        case 'updateModal':
+            return {
+                ...state
+                , modalName: action.modalName
+            }
+        case 'updateOffcanvas':
+            return {
+                ...state
+                , offcanvasName: action.offcanvasName
+            }
         default:
             return {...state}
     }

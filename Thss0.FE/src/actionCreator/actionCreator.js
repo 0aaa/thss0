@@ -27,9 +27,23 @@ const updateTheme = () => {
         type: 'updateTheme'
     }
 }
+const updateModal = modalName => {
+    return {
+        type: 'updateModal'
+        , modalName
+    }
+}
+const updateOffcanvas = offcanvasName => {
+    return {
+        type: 'updateOffcanvas'
+        , offcanvasName: offcanvasName
+    }
+}
 export {
     updateContent
     , updateDetailed
     , updateAuth
     , updateTheme
+    , updateModal
+    , updateOffcanvas
 }

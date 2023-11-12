@@ -32,7 +32,7 @@ const getTokenAsync = async target => {
             'Content-Type': 'application/json'
         }
         , body: JSON.stringify({
-            username: target['login-name'].value
+            name: target['login-name'].value
             , password: target['login-password'].value
         })
     })

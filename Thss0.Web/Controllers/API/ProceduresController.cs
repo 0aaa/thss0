@@ -1,11 +1,11 @@
-﻿using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Extensions;
+using Thss0.Web.Models;
 using Thss0.Web.Models.Entities;
 using Thss0.Web.Models.ViewModels;
 
@@ -25,47 +25,51 @@ namespace Thss0.Web.Controllers.API
             _userManager = userManager;
         }
 
-        [HttpGet("{order:bool?}/{printBy:int?}/{page:int?}")]
+        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}/{toFind?}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<IEnumerable<ProcedureViewModel>>> GetProcedures(bool order = true, int printBy = 20, int page = 1)
+        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true, string toFind = "")
         {
-            var procedures = await _context.Procedures.ToListAsync();
-            if (!procedures.Any())
+            IEnumerable<Procedure> procedures;
+            if (toFind == "")
             {
-                return NoContent();
+                procedures = await _context.Procedures.ToListAsync(); 
             }
-            return Json(new
+            else
             {
-                content = (order ? procedures.OrderBy(p => p.Name) : procedures.OrderByDescending(p => p.Name))
-                                            .Skip((page - 1) * printBy).Take(printBy)
-                                            .Select(p => new ProcedureViewModel { Id = p.Id, Name = p.Name })
-                , total_amount = await _context.Procedures.CountAsync()
+                procedures = await _context.Procedures.Where(p => p.Name != null && p.Name.Contains(toFind)).ToListAsync();
+            }
+            return Json(new Response
+            {
+                Content = (order ? procedures.OrderBy(p => p.Name) : procedures.OrderByDescending(p => p.Name))
+                                                .Skip((page - 1) * printBy).Take(printBy)
+                                                .Select(p => new ViewModel { Id = p.Id, Name = p.Name })
+                , TotalAmount = procedures.Count()
             });
         }
 
         [HttpGet("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<ProcedureViewModel>> GetProcedure(string id)
+        public async Task<ActionResult<ProcedureViewModel>> Get(string id)
         {
             var source = await _context.Procedures.FindAsync(id);
             if (source == null)
             {
                 return NotFound();
             }
-            return await InitializeProcedure(source);
+            return await Initialize(source);
         }
 
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<Procedure>> PostProcedure(ProcedureViewModel procedure)
+        public async Task<ActionResult<Procedure>> Post(ProcedureViewModel procedure)
         {
-            new EntityInitializer().Validation(ModelState, procedure);
+            new InitializationHelper().Validation(ModelState, procedure);
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
             var procedureToAdd = new Procedure();
-            await InitializeProcedure(procedure, procedureToAdd);
+            await Initialize(procedure, procedureToAdd);
             await _context.Procedures.AddAsync(procedureToAdd);
             try
             {
@@ -74,7 +78,7 @@ namespace Thss0.Web.Controllers.API
             catch (DbUpdateException e)
             {
                 Console.WriteLine(e.Message);
-                if (ProcedureExists(procedureToAdd.Id))
+                if (Exists(procedureToAdd.Id))
                 {
                     return Conflict();
                 }
@@ -84,7 +88,7 @@ namespace Thss0.Web.Controllers.API
 
         [HttpPut("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
-        public async Task<ActionResult> PutProcedure(string id, ProcedureViewModel procedure)
+        public async Task<ActionResult> Put(string id, ProcedureViewModel procedure)
         {
             if (id != procedure.Id)
             {
@@ -95,7 +99,7 @@ namespace Thss0.Web.Controllers.API
             {
                 return NotFound();
             }
-            await InitializeProcedure(procedure, procedureToUpdate);
+            await Initialize(procedure, procedureToUpdate);
             _context.Entry(procedureToUpdate).State = EntityState.Modified;
             try
             {
@@ -104,7 +108,7 @@ namespace Thss0.Web.Controllers.API
             catch (DbUpdateConcurrencyException e)
             {
                 Console.WriteLine(e.Message);
-                if (!ProcedureExists(id))
+                if (!Exists(id))
                 {
                     return NotFound();
                 }
@@ -114,7 +118,7 @@ namespace Thss0.Web.Controllers.API
 
         [HttpDelete("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
-        public async Task<ActionResult> DeleteProcedure(string id)
+        public async Task<ActionResult> Delete(string id)
         {
             var procedure = await _context.Procedures.FindAsync(id);
             if (procedure == null)
@@ -133,9 +137,9 @@ namespace Thss0.Web.Controllers.API
             return NoContent();
         }
 
-        private async Task<Procedure> InitializeProcedure(ProcedureViewModel source, Procedure dest)
+        private async Task<Procedure> Initialize(ProcedureViewModel source, Procedure dest)
         {
-            new EntityInitializer().InitializeEntity(ModelState, source, dest);
+            new InitializationHelper().InitializeEntity(source, dest);
             if (source.DepartmentNames != "")
             {
                 await HandleDepartment(source, dest);
@@ -198,7 +202,7 @@ namespace Thss0.Web.Controllers.API
                 {
                     user = new ApplicationUser
                     {
-                        UserName = usersArr[i]
+                        Name = usersArr[i]
                     };
                     result = await _userManager.CreateAsync(user);
                     if (!result.Succeeded)
@@ -223,7 +227,7 @@ namespace Thss0.Web.Controllers.API
             for (ushort i = 0; i < brandNames.Count(); i++)
             {
                 // res = await substancesCtrl.GetSubstance(brandNames.ElementAt(i), false);
-                res = await substancesCtrl.GetSubstance(brandNames.ElementAt(i));
+                res = await substancesCtrl.Get(brandNames.ElementAt(i));
                 if (res.Value != null)
                 {
                     dest.Substance.Add(new Substance
@@ -234,9 +238,9 @@ namespace Thss0.Web.Controllers.API
             }
         }
 
-        private async Task<ProcedureViewModel> InitializeProcedure(Procedure source)
+        private async Task<ProcedureViewModel> Initialize(Procedure source)
         {
-            var dest = (ProcedureViewModel)new EntityInitializer().InitializeViewModel(source, new ProcedureViewModel());
+            var dest = (ProcedureViewModel)new InitializationHelper().InitializeViewModel(source, new ProcedureViewModel());
             if (source.Department != default)
             {
                 dest.Department = source.Department.Id;
@@ -263,7 +267,7 @@ namespace Thss0.Web.Controllers.API
             for (ushort i = 0; i < users.Count; i++)
             {
                 dest.User += $"{users.ElementAtOrDefault(i)?.Id}\n";
-                dest.UserNames += $"{users.ElementAtOrDefault(i)?.UserName}\n";
+                dest.UserNames += $"{users.ElementAtOrDefault(i)?.Name}\n";
             }
         }
         private async Task HandleSubstances(Procedure source, ProcedureViewModel dest)
@@ -278,13 +282,13 @@ namespace Thss0.Web.Controllers.API
             SubstanceViewModel substance;
             for (int i = 0; i < substances.Count; i++)
             {
-                substance = (await controller.GetSubstance(substances.ElementAtOrDefault(i)?.Id ?? "")).Value!;
+                substance = (await controller.Get(substances.ElementAtOrDefault(i)?.Id ?? "")).Value!;
                 dest.Substance += $"{substance.Id}\n";
                 dest.SubstanceNames += $"{substance.Name}\n";
             }
         }
 
-        private bool ProcedureExists(string id)
+        private bool Exists(string id)
             => _context.Procedures.Any(e => e.Id == id);
     }
 }

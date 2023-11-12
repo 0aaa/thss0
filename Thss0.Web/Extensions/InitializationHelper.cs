@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Thss0.Web.Extensions
 {
-    public class EntityInitializer
+    public class InitializationHelper
     {
-        const ushort MAX_RESULT_GAP = 5;
+        const ushort RESULT_MIN_GAP = 5;
         private readonly string[] _departmentProperties = { "Name" };
-        private readonly string[] _userProperties = { "UserName", "DoB", "PoB" };
+        private readonly string[] _userProperties = { "Name", "DoB", "PoB", "Photo" };
         private readonly string[] _procedureProperties = { "Name", "BeginTime", "EndTime" };
         private readonly string[] _resultProperties = { "ObtainmentTime", "Content" };
         private readonly string[] _roleProperties = { "Name" };
@@ -32,6 +32,9 @@ namespace Thss0.Web.Extensions
                 case "ResultViewModel":
                     propertyNames = _resultProperties;
                     break;
+                case "IdentityRoleProxy":
+                    propertyNames = _roleProperties;// To verify.
+                    break;
             }
             var properties = type.GetProperties().Where(p => propertyNames.Contains(p.Name)).ToArray();
             for (ushort i = 0; i < properties.Length; i++)
@@ -39,7 +42,7 @@ namespace Thss0.Web.Extensions
                 value = properties[i].GetValue(viewModel)?.ToString() ?? "";
                 if (properties[i].Name.Contains("Time") && value != "")
                 {
-                    if (DateTime.Parse(value) < DateTime.Now.AddMinutes(MAX_RESULT_GAP))
+                    if (DateTime.Parse(value) < DateTime.Now.AddMinutes(RESULT_MIN_GAP))
                     {
                         state.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} cannot be less than the current time");
                     }
@@ -55,7 +58,7 @@ namespace Thss0.Web.Extensions
             }
         }
 
-        public object InitializeEntity(ModelStateDictionary state, object source, object dest)
+        public object InitializeEntity(object source, object dest)
         {
             var sourceType = source.GetType();
             var destType = dest.GetType();
@@ -73,6 +76,9 @@ namespace Thss0.Web.Extensions
                     break;
                 case "ResultViewModel":
                     propertyNames = _resultProperties;
+                    break;
+                case "IdentityRoleProxy":
+                    propertyNames = _roleProperties;// To verify.
                     break;
             }
             var sourceProperties = sourceType.GetProperties()
@@ -104,6 +110,7 @@ namespace Thss0.Web.Extensions
             var sourceType = source.GetType();
             var destType = dest.GetType();
             var propertyNames = Array.Empty<string>();
+            string valueToSet;
             switch (sourceType.Name)
             {
                 case "DepartmentProxy":
@@ -122,23 +129,23 @@ namespace Thss0.Web.Extensions
                     propertyNames = _roleProperties;// To verify.
                     break;
             }
+            propertyNames = new[] { "Id" }.Concat(propertyNames).ToArray();
             var sourceProperties = sourceType.GetProperties()
-                                            .Where(p => propertyNames.Contains(p.Name) || p.Name == "Id").ToArray();
+                                            .Where(p => propertyNames.Contains(p.Name)).ToArray();
             var destProperties = destType.GetProperties()
-                                            .Where(p => propertyNames.Contains(p.Name) || p.Name == "Id").ToArray();
-            var valueToSet = sourceProperties.FirstOrDefault(p => p.Name == "Id")?.GetValue(source)?.ToString() ?? "";
-            if (valueToSet != default && valueToSet != default(DateTime).ToString())
-            {
-                destProperties.FirstOrDefault(p => p.Name == "Id")
-                        ?.SetValue(dest, valueToSet);
-            }
+                                            .Where(p => propertyNames.Contains(p.Name)).ToArray();
             for (ushort i = 0; i < propertyNames.Length; i++)
             {
-                valueToSet = sourceProperties[i].GetValue(source)?.ToString() ?? "";
-                if (valueToSet != default && valueToSet != default(DateTime).ToString())
+                valueToSet =  sourceProperties[i].GetValue(source)?.ToString() ?? "";
+                if (valueToSet != default && valueToSet != default(DateTime).ToString() && sourceProperties[i].Name != "Photo")
                 {
                     destProperties.FirstOrDefault(p => p.Name == propertyNames[i])
-                            ?.SetValue(dest, sourceProperties.FirstOrDefault(p => p.Name == propertyNames[i])?.GetValue(source)?.ToString());
+                            ?.SetValue(dest, valueToSet);
+                }
+                else if (sourceProperties[i].Name == "Photo")
+                {
+                    destProperties.FirstOrDefault(p => p.Name == propertyNames[i])
+                            ?.SetValue(dest, sourceProperties[i].GetValue(source));
                 }
             }
             return dest;

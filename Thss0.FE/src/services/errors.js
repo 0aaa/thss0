@@ -8,7 +8,7 @@ const handleErrors = async fetchResult => {
 const printErrors= err => {
     let errorSpan = null
     for (const e in err) {
-        errorSpan = document.getElementById(`${e.replace(/^./, e[0].toLowerCase())}-error`)
+        errorSpan = document.getElementById(`${e.replace(/^./, e[0].toLowerCase())}Error`)
         UseToast(err[e])
         if (errorSpan) {            
             errorSpan.innerHTML = ''

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Thss0.Web.Data;
 using Thss0.Web.Extensions;
+using Thss0.Web.Models;
 using Thss0.Web.Models.Entities;
 using Thss0.Web.Models.ViewModels;
 
@@ -24,45 +25,49 @@ namespace Thss0.Web.Controllers.API
             _userManager = userManager;
         }
 
-        [HttpGet("{order:bool?}/{printBy:int?}/{page:int?}")]
-        public async Task<ActionResult<IEnumerable<DepartmentViewModel>>> GetDepartments(bool order = true, int printBy = 20, int page = 1)
+        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}/{toFind?}")]
+        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true, string toFind = "")
         {
-            var departments = await _context.Departments.ToListAsync();
-            if (!departments.Any())
-            {
-                return NoContent();
+            IEnumerable<Department> departments;
+            if (toFind == "")
+            {                
+                departments = await _context.Departments.ToListAsync();
             }
-            return Json(new
+            else
             {
-                content = (order ? departments.OrderBy(d => d.Name) : departments.OrderByDescending(d => d.Name))
+                departments = await _context.Departments.Where(d => d.Name != null && d.Name.Contains(toFind)).ToListAsync();
+            }
+            return Json(new Response
+            {
+                Content = (order ? departments.OrderBy(d => d.Name) : departments.OrderByDescending(d => d.Name))
                                                     .Skip((page - 1) * printBy).Take(printBy)
-                                                    .Select(d => new DepartmentViewModel { Id = d.Id, Name = d.Name })
-                , total_amount = await _context.Departments.CountAsync()
+                                                    .Select(d => new ViewModel { Id = d.Id, Name = d.Name })
+                , TotalAmount = departments.Count()
             });
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<DepartmentViewModel>> GetDepartment(string id)
+        public async Task<ActionResult<DepartmentViewModel>> Get(string id)
         {
             var department = await _context.Departments.FindAsync(id);
             if (department == null)
             {
                 return NotFound();
             }
-            return InitializeDepartment(department);
+            return Initialize(department);
         }
 
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
-        public async Task<ActionResult<Department>> PostDepartment(DepartmentViewModel department)
+        public async Task<ActionResult<Department>> Post(DepartmentViewModel department)
         {
-            new EntityInitializer().Validation(ModelState, department);
+            new InitializationHelper().Validation(ModelState, department);
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
             var departmentToAdd = new Department();
-            await InitializeDepartment(department, departmentToAdd);
+            await Initialize(department, departmentToAdd);
             await _context.Departments.AddAsync(departmentToAdd);
             try
             {
@@ -71,7 +76,7 @@ namespace Thss0.Web.Controllers.API
             catch (DbUpdateException e)
             {
                 Console.WriteLine(e.Message);
-                if (DepartmentExists(departmentToAdd.Id))
+                if (Exists(departmentToAdd.Id))
                 {
                     return Conflict();
                 }
@@ -81,7 +86,7 @@ namespace Thss0.Web.Controllers.API
 
         [HttpPut("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
-        public async Task<ActionResult> PutDepartment(string id, DepartmentViewModel department)
+        public async Task<ActionResult> Put(string id, DepartmentViewModel department)
         {
             if (id != department.Id)
             {
@@ -92,7 +97,7 @@ namespace Thss0.Web.Controllers.API
             {
                 return NotFound();
             }
-            await InitializeDepartment(department, departmentToUpdate);
+            await Initialize(department, departmentToUpdate);
             _context.Entry(departmentToUpdate).State = EntityState.Modified;
             try
             {
@@ -101,7 +106,7 @@ namespace Thss0.Web.Controllers.API
             catch (DbUpdateConcurrencyException e)
             {
                 Console.WriteLine(e.Message);
-                if (!DepartmentExists(id))
+                if (!Exists(id))
                 {
                     return NotFound();
                 }
@@ -111,7 +116,7 @@ namespace Thss0.Web.Controllers.API
 
         [HttpDelete("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
-        public async Task<ActionResult> DeleteDepartment(string id)
+        public async Task<ActionResult> Delete(string id)
         {
             var department = await _context.Departments.FindAsync(id);
             if (department == null)
@@ -130,9 +135,9 @@ namespace Thss0.Web.Controllers.API
             return NoContent();
         }
 
-        private async Task<Department> InitializeDepartment(DepartmentViewModel source, Department dest)
+        private async Task<Department> Initialize(DepartmentViewModel source, Department dest)
         {
-            new EntityInitializer().InitializeEntity(ModelState, source, dest);
+            new InitializationHelper().InitializeEntity(source, dest);
             if (source.ProcedureNames != "")
             {
                 await HandleProcedures(source, dest);
@@ -170,7 +175,7 @@ namespace Thss0.Web.Controllers.API
                 {
                     user = new ApplicationUser
                     {
-                        UserName = usersArr[i]
+                        Name = usersArr[i]
                     };
                     result = await _userManager.CreateAsync(user);
                     if (!result.Succeeded)
@@ -188,9 +193,9 @@ namespace Thss0.Web.Controllers.API
             return dest;
         }
 
-        private DepartmentViewModel InitializeDepartment(Department source)
+        private DepartmentViewModel Initialize(Department source)
         {
-            var dest = (DepartmentViewModel)new EntityInitializer().InitializeViewModel(source, new DepartmentViewModel());
+            var dest = (DepartmentViewModel)new InitializationHelper().InitializeViewModel(source, new DepartmentViewModel());
             if (source.Procedure != null)
             {
                 HandleProcedures(source, dest);
@@ -216,10 +221,10 @@ namespace Thss0.Web.Controllers.API
             for (ushort i = 0; i < users.Count; i++)
             {
                 dest.User += $"{users.ElementAtOrDefault(i)?.Id}\n";
-                dest.UserNames += $"{users.ElementAtOrDefault(i)?.UserName}\n";
+                dest.UserNames += $"{users.ElementAtOrDefault(i)?.Name}\n";
             }
         }
-        private bool DepartmentExists(string id)
+        private bool Exists(string id)
             => _context.Departments.Any(e => e.Id == id);
     }
 }

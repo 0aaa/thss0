@@ -2,14 +2,16 @@ import { AUTH_TOKEN, API_URL } from '../config/consts'
 import { UseToast } from '../config/hooks'
 import { eraseErrors, handleErrors } from './errors'
 
-const getRecords = async (path, globalOrder, printBy, currentPage) => {
-    if (['professional', 'client'].includes(path.split('/')[0])) {        
-        path = `users/${path}`
-    }
-    globalOrder = (globalOrder && `/${globalOrder}`) || ''
+const getRecords = async (path, printBy, currentPage, globalOrder, toFind) => {
+    // if (['professional', 'client'].includes(path.split('/')[0])) {        
+    //     path = `users/${path}`
+    // }
     printBy = (printBy && `/${printBy}`) || ''
     currentPage = (currentPage && `/${currentPage}`) || ''
-    const fetchResult = await fetch(API_URL + path + globalOrder + printBy + currentPage, {
+    globalOrder = (globalOrder && `/${globalOrder}`) || ''
+    toFind = (toFind && `/${toFind}`) || ''
+    console.log(API_URL + path + printBy + currentPage + globalOrder + toFind)
+    const fetchResult = await fetch(API_URL + path + printBy + currentPage + globalOrder + toFind, {
         method: 'GET'
         , headers: {
             'Accept': 'application/json'

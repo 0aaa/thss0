@@ -2357,6 +2357,16 @@
         "runtime": {
           "lib/netstandard1.3/System.Xml.XmlDocument.dll": {}
         }
+      },
+      "OpenAI/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v6.0",
+        "compile": {
+          "bin/placeholder/OpenAI.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/OpenAI.dll": {}
+        }
       }
     }
   },
@@ -7365,6 +7375,11 @@
         "system.xml.xmldocument.4.3.0.nupkg.sha512",
         "system.xml.xmldocument.nuspec"
       ]
+    },
+    "OpenAI/1.0.0": {
+      "type": "project",
+      "path": "../OpenAI/OpenAI.csproj",
+      "msbuildProject": "../OpenAI/OpenAI.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -7376,7 +7391,8 @@
       "Microsoft.EntityFrameworkCore.Proxies >= 6.0.16",
       "Microsoft.EntityFrameworkCore.SqlServer >= 6.0.16",
       "Microsoft.EntityFrameworkCore.Tools >= 6.0.16",
-      "Newtonsoft.Json >= 13.0.2"
+      "Newtonsoft.Json >= 13.0.2",
+      "OpenAI >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -7405,7 +7421,11 @@
       "frameworks": {
         "net6.0": {
           "targetAlias": "net6.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\OpenAI\\OpenAI.csproj": {
+              "projectPath": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\OpenAI\\OpenAI.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

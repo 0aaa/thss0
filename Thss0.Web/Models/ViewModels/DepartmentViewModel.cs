@@ -1,10 +1,7 @@
 namespace Thss0.Web.Models.ViewModels
 {
-    public class DepartmentViewModel
+    public class DepartmentViewModel : ViewModel
     {
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
-
         public string User { get; set; } = "";
         public string Procedure { get; set; } = "";
         public string UserNames { get; set; } = "";

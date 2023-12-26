@@ -1,14 +1,14 @@
 import React, { Children } from 'react'
 import { connect } from 'react-redux'
-import { getRecords } from '../../../services/entities'
+import { getRecord } from '../../../services/entities'
 import { updateDetailed } from '../../../actionCreator/actionCreator'
 
 const Details = props =>
     <div className="offcanvas-body">
         {(props.detailedItem
             && <>
-                {props.detailedItem['photo'] && <img src={`data:image/jpeg;base64, ${props.detailedItem['photo']}`} />}
-                {Children.toArray(Object.keys(props.detailedItem).map(key =>
+                {props.detailedItem['photo'] && <img src={`data:image/jpeg;base64, ${props.detailedItem['photo']}`} style={{ height: '320px' }} />}
+                {Children.toArray(Object.keys(props.detailedItem).reverse().map(key =>
                     !(key.includes('Names') || props.detailedItem[key] === '' || key === 'photo')
                         && <dl>
                             <dt>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</dt>
@@ -40,7 +40,7 @@ const mapStateToProps = state => ({ detailedItem: state.detailedItem })
 const mapDispatchToProps = dispatch => ({
     updateDetailed: async (event, path) => {
         event.preventDefault()
-        dispatch(updateDetailed(await getRecords(path)))
+        dispatch(updateDetailed(await getRecord(path), 'Details'))
     }    
 })
 

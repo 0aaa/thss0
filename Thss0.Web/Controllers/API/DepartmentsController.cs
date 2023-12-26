@@ -25,24 +25,16 @@ namespace Thss0.Web.Controllers.API
             _userManager = userManager;
         }
 
-        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}/{toFind?}")]
-        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true, string toFind = "")
+        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}")]
+        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true)
         {
-            IEnumerable<Department> departments;
-            if (toFind == "")
-            {                
-                departments = await _context.Departments.ToListAsync();
-            }
-            else
-            {
-                departments = await _context.Departments.Where(d => d.Name != null && d.Name.Contains(toFind)).ToListAsync();
-            }
+            var departments = await _context.Departments.ToListAsync();
             return Json(new Response
             {
                 Content = (order ? departments.OrderBy(d => d.Name) : departments.OrderByDescending(d => d.Name))
                                                     .Skip((page - 1) * printBy).Take(printBy)
                                                     .Select(d => new ViewModel { Id = d.Id, Name = d.Name })
-                , TotalAmount = departments.Count()
+                , TotalAmount = departments.Count
             });
         }
 

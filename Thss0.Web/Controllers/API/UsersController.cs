@@ -11,7 +11,6 @@ using System.Data;
 
 namespace Thss0.Web.Controllers.API
 {
-    [Route("api/[controller]")]
     [Route("api/professional")]
     [Route("api/client")]
     [ApiController]
@@ -22,9 +21,10 @@ namespace Thss0.Web.Controllers.API
         public UsersController(UserManager<ApplicationUser> userManager)
             => _userManager = userManager;
 
-        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}/{role?}")]
-        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true, string role = "client")
+        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}")]
+        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true)
         {
+            var role = Request.Path.Value?.Split('/')[2];
             IList<ApplicationUser> users;
             if (role == "client")
             {
@@ -50,10 +50,11 @@ namespace Thss0.Web.Controllers.API
         private async Task<IList<ApplicationUser>> GetProfessionals()
             => await _userManager.GetUsersInRoleAsync("professional");
 
-        [HttpGet("{role}/{id}")]
+        [HttpGet("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<UserViewModel>> Get(string role, string id)
+        public async Task<ActionResult<UserViewModel>> Get(string id)
         {
+            var role = Request.Path.Value?.Split('/')[2];
             if (id == null || _userManager.Users == null)
             {
                 return NotFound();
@@ -63,7 +64,7 @@ namespace Thss0.Web.Controllers.API
             {
                 return NotFound();
             }
-            return await InitializeUser(user);
+            return await Initialize(user);
         }
 
         [HttpPost]
@@ -74,7 +75,7 @@ namespace Thss0.Web.Controllers.API
             if (ModelState.IsValid)
             {
                 var userToAdd = new ApplicationUser();
-                InitializeUser(user, userToAdd);
+                Initialize(user, userToAdd);
                 var result = await _userManager.CreateAsync(userToAdd, user.Password);
                 if (!result.Succeeded)
                 {
@@ -129,7 +130,7 @@ namespace Thss0.Web.Controllers.API
                 }
                 catch (Exception e)
                 {
-                    if (!UserExists(user.Email))
+                    if (!Exists(user.Email))
                     {
                         return NotFound();
                     }
@@ -165,12 +166,12 @@ namespace Thss0.Web.Controllers.API
             return NotFound();
         }
 
-        private void InitializeUser(UserViewModel source, ApplicationUser dest)
+        private void Initialize(UserViewModel source, ApplicationUser dest)
         {
             new InitializationHelper().InitializeEntity(source, dest);
         }
 
-        private async Task<UserViewModel> InitializeUser(ApplicationUser source)
+        private async Task<UserViewModel> Initialize(ApplicationUser source)
         {
             var dest = (UserViewModel)new InitializationHelper().InitializeViewModel(source, new UserViewModel());
             dest.Role = (await _userManager.GetRolesAsync(source)).FirstOrDefault() ?? "No role";
@@ -201,7 +202,7 @@ namespace Thss0.Web.Controllers.API
             }
         }
 
-        private bool UserExists(string email)
+        private bool Exists(string email)
             => _userManager.Users.Any(u => u.Email == email);
     }
 }

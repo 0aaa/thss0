@@ -25,25 +25,17 @@ namespace Thss0.Web.Controllers.API
             _userManager = userManager;
         }
 
-        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}/{toFind?}")]
+        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true, string toFind = "")
+        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true)
         {
-            IEnumerable<Result> results;
-            if (toFind == "")
-            {
-                results = await _context.Results.ToListAsync();
-            }
-            else
-            {
-                results = await _context.Results.Where(r => r.Content != null && r.Content.Contains(toFind)).ToListAsync();
-            }
+            var results = await _context.Results.ToListAsync();
             return Json(new Response
             {
-                Content = (order ? results.OrderBy(r => r.ObtainmentTime) : results.OrderByDescending(r => r.ObtainmentTime))
+                Content = (order ? results.OrderBy(r => r.Name) : results.OrderByDescending(r => r.Name))
                                                 .Skip((page - 1) * printBy).Take(printBy)
-                                                .Select(r => new ViewModel { Id = r.Id, Name = r.ObtainmentTime.ToString() })
-                , TotalAmount = results.Count()
+                                                .Select(r => new ViewModel { Id = r.Id, Name = r.Name.ToString() })
+                , TotalAmount = results.Count
             });
         }
 

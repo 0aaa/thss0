@@ -13,6 +13,7 @@ const appReducer = (state, action) => {
             return {
                 ...state
                 , detailedItem: action.detailedItem
+                , offcanvasName: action.offcanvasName
             }
         case 'updateAuth':
             return {
@@ -28,11 +29,6 @@ const appReducer = (state, action) => {
             return {
                 ...state
                 , modalName: action.modalName
-            }
-        case 'updateOffcanvas':
-            return {
-                ...state
-                , offcanvasName: action.offcanvasName
             }
         default:
             return {...state}

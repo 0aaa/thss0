@@ -15,15 +15,16 @@ class Add extends React.Component {
         this.getKeys()
     }
 
-    componentDidUpdate() {
-        this.getKeys()
-    }
+    componentDidUpdate = () => this.getKeys()
 
     getKeys() {
-        const keys = Object.keys(this.props.content[0]).filter(key => !['id', 'creationTime', 'department', 'result', 'user', 'procedure', 'substance'].includes(key))
-        if (this.state.keys.length === 0 || this.state.keys.join() !== keys.join()) {
+        let keys = []
+        if (this.props.detailedItem) {
+            keys = Object.keys(this.props.detailedItem).filter(key => !['id', 'creationTime', 'department', 'result', 'user', 'procedure', 'substance'].includes(key)).reverse()
+        }
+        if (this.state.keys.join() !== keys.join()) {
             this.setState({ keys })
-            this.state.roles.length === 0 && ['professional', 'client'].includes(this.props.entityName) && getRecords('roles').then(res => this.setState({ roles: res.content }))
+            this.state.roles.length === 0 && ['professional', 'client'].includes(this.props.entityName) && getRecords('roles', this.props.printBy, this.props.currentPage, this.props.globalOrder).then(res => this.setState({ roles: res.content }))
         }
     }
 
@@ -35,10 +36,7 @@ class Add extends React.Component {
         let optionToAdd = null
         if (['departmentNames', 'userNames', 'procedure', 'resultNames', 'procedureNames'].includes(currentKey)
                 && event.target.value.length > 3) {
-            contentArr = (await getRecords(`search/${currentKey}/${encodeURIComponent(event.target.value)}`)).content
-        } else if (currentKey === 'photo') {
-            document.getElementById('photo').childNodes[2].src = URL.createObjectURL(event.target.files[0])
-            return
+            contentArr = (await getRecords(`search/${encodeURIComponent(event.target.value)}/${currentKey}`, this.props.printBy, this.props.currentPage, this.props.globalOrder)).content
         }
         datalist.innerHTML = ''
         datalist.appendChild(event.target)
@@ -47,15 +45,18 @@ class Add extends React.Component {
             optionToAdd = document.createElement('pre')
             optionToAdd.className = 'border bg-white p-2 mb-0 user-select-none'
             if (index > -1) {
-                optionToAdd.innerHTML = contentArr[index].name ?? contentArr[index].userName ?? contentArr[index].content
+                optionToAdd.innerHTML = contentArr[index].name
+            } else if (currentKey.endsWith('Time') && event.target.value.match(/.{2}$/)[0] % 15) {
+                const timeToAdjust = new Date(event.target.value)
+                timeToAdjust.setMinutes(timeToAdjust.getMinutes() - timeToAdjust.getTimezoneOffset() + 15 - event.target.value.match(/.{2}$/)[0] % 15)
+                optionToAdd.innerHTML = timeToAdjust.toISOString().replace(/.{8}$/, '')
+            } else if (currentKey === 'photo') {
+                const img = document.createElement('img')
+                img.src = URL.createObjectURL(event.target.files[0])
+                img.height = 320
+                optionToAdd.appendChild(img)
             } else {
-                if (currentKey.endsWith('Time') && event.target.value.match(/.{2}$/)[0] % 15) {
-                    const timeToAdjust = new Date(event.target.value)
-                    timeToAdjust.setMinutes(timeToAdjust.getMinutes() - timeToAdjust.getTimezoneOffset() + 15 - event.target.value.match(/.{2}$/)[0] % 15)
-                    optionToAdd.innerHTML = timeToAdjust.toISOString().replace(/.{8}$/, '')
-                } else {
-                    optionToAdd.innerHTML = event.target.value
-                }
+                optionToAdd.innerHTML = event.target.value
             }
             datalist.appendChild(optionToAdd)
             this.drag(optionToAdd, currentKey)
@@ -72,26 +73,35 @@ class Add extends React.Component {
             sourceX = dataListOption.style.left
             sourceY = dataListOption.style.top
             dragBuffer = dataListOption
+            dragBuffer.className = 'border bg-white p-2 mb-0 user-select-none w-25'
 
             document.onmouseup = event => {
                 document.onmousemove = null
                 document.onmouseup = null
                 if (event.pageX > addForm.offsetParent.offsetLeft && event.pageX < addForm.offsetParent.offsetLeft + addForm.offsetWidth
-                    && event.pageY > addForm.offsetTop && event.pageY < addForm.offsetTop + addForm.offsetHeight) {
+                        && event.pageY > addForm.offsetTop && event.pageY < addForm.offsetTop + addForm.offsetHeight) {
 
                     dragBuffer.style.position = 'static'
-                    document.getElementById(currentKey).appendChild(dragBuffer)
+                    const currentLi = document.getElementById(currentKey)
+                    currentLi.appendChild(dragBuffer)
+                    dragBuffer.className = 'border bg-white p-2 mb-0 user-select-none w-100'
                     if (currentKey === 'password') {
                         const passwordClone = dragBuffer.cloneNode(true)
                         dragBuffer.className = 'd-none'
                         passwordClone.innerHTML = passwordClone.innerHTML.replace(/\S/g, '*')
-                        document.getElementById(currentKey).appendChild(passwordClone)
+                        passwordClone.onmouseup = () => {
+                            while (currentLi.childElementCount > 2) {
+                                currentLi.childNodes[2].remove()
+                            }
+                        }
+                        currentLi.appendChild(passwordClone)
                     }
                 } else if (dragBuffer) {
                     dragBuffer.style.position = 'static'
                     dragBuffer.style.left = sourceX
                     dragBuffer.style.top = sourceY
                     document.getElementById(`${currentKey}-input`).parentNode.appendChild(dragBuffer)
+                    dragBuffer.className = 'border bg-white p-2 mb-0 user-select-none w-100'
                 }
                 dragBuffer = null
             }
@@ -132,8 +142,7 @@ class Add extends React.Component {
                         {Children.toArray(this.state.keys.map(key =>
                             <li id={key} className={`add-li ${this.state.keys.indexOf(key) > 0 && 'd-none'}`}>
                                 <span id={`${key}Error`} className="d-none"></span>
-                                <span>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</span>
-                                {key === 'photo' && <img />}
+                                <span>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</span>                                
                             </li>
                         ))}
                     </ul>
@@ -155,11 +164,9 @@ class Add extends React.Component {
                                                 Devices
                                             </button>
                                         </div>
-                                        <textarea id={`${key}-input`} onChange={event => this.updateDatalist(event)}
-                                            className="form-control border-0 rounded-0" placeholder="Content" />
+                                        <textarea id={`${key}-input`} onChange={event => this.updateDatalist(event)} className="form-control border-0 rounded-0" placeholder="Content" />
                                     </div>,
-                                'role':
-                                    <div className={`carousel-item ${(this.state.keys.indexOf(key) === 0 && 'active') || ''}`}>
+                                'role': <div className={`carousel-item ${(this.state.keys.indexOf(key) === 0 && 'active') || ''}`}>
                                         <select id={`${key}-input`} onChange={event => this.updateDatalist(event)} defaultValue="Role" className="form-control border-0 rounded-0">
                                             <option disabled hidden>Role</option>
                                             {Children.toArray(this.state.roles?.map(role =>
@@ -175,8 +182,7 @@ class Add extends React.Component {
                                         placeholder={key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}
                                         className="form-control border-0 rounded-0" />
                                 </div>
-                        }
-                        ))}
+                        }))}
                     </div>
                     <button onClick={event => this.printForm(event)} className="carousel-control-prev mt-auto mb-3"
                             data-bs-target="#addCarousel" data-bs-slide="prev" style={{ height: 'fit-content' }}>
@@ -201,10 +207,10 @@ const mapDispatchToProps = dispatch => ({
     handleAdd: async (event, stateCopy) => {
         event.preventDefault()
         const addDictionary = {}
-        readForm(event, addDictionary)
+        await readForm(event, addDictionary)
         clearLi()
         await addRecord(stateCopy.entityName, addDictionary)
-        const data = await getRecords(stateCopy.entityName)
+        const data = await getRecords(stateCopy.entityName, stateCopy.printBy, stateCopy.currentPage, stateCopy.globalOrder)
         data && dispatch(updateContent({...stateCopy, content: data.content}))
     }
     , updateModal: event => {
@@ -215,23 +221,27 @@ const mapDispatchToProps = dispatch => ({
 
 export default connect(mapStateToProps, mapDispatchToProps)(AddRouter)
 
-const readForm = (event, addDictionary) => {
+const readForm = async (event, addDictionary) => {
     const addCredentials = [...event.target.childNodes[0].childNodes]
-    let childsArrSize
     const carouselSlides = document.getElementById('addCarousel').childNodes[1].childNodes
     let controlBuffer
     for (let index = 0; index < addCredentials.length; index++) {
         if (addCredentials[index].childNodes[2]) {
             addDictionary[addCredentials[index].id] = ''
         }
-        childsArrSize = addCredentials[index].childNodes.length
-        for (let jndex = 2; jndex < childsArrSize; jndex++) {
-            if (addCredentials[index].id !== 'password' || addCredentials[index].childNodes[2].className === 'd-none') {
+        while (addCredentials[index].childElementCount > 2) {
+            if (addCredentials[index].id === 'photo') {
+                addDictionary['photo'] = Array.from(new Int8Array(await new Promise(resolve => {
+                    const reader = new FileReader()
+                    reader.onloadend = e => resolve(e.target.result)
+                    reader.readAsArrayBuffer(document.querySelector('input[type=file]').files[0])
+                })))
+            } else if (addCredentials[index].id !== 'password' || addCredentials[index].childNodes[2].className === 'd-none') {
                 addDictionary[addCredentials[index].id] += `${addCredentials[index].childNodes[2].innerHTML} `
             }
             addCredentials[index].childNodes[2].remove()
         }
-        if (addDictionary[addCredentials[index].id]) {
+        if (addDictionary[addCredentials[index].id] && addCredentials[index].id !== 'photo') {
             addDictionary[addCredentials[index].id] = addDictionary[addCredentials[index].id].trimEnd()
         }
         controlBuffer = carouselSlides[index].childNodes[0]

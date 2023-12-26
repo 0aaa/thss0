@@ -2,16 +2,25 @@ import { AUTH_TOKEN, API_URL } from '../config/consts'
 import { UseToast } from '../config/hooks'
 import { eraseErrors, handleErrors } from './errors'
 
-const getRecords = async (path, printBy, currentPage, globalOrder, toFind) => {
-    // if (['professional', 'client'].includes(path.split('/')[0])) {        
-    //     path = `users/${path}`
-    // }
-    printBy = (printBy && `/${printBy}`) || ''
-    currentPage = (currentPage && `/${currentPage}`) || ''
-    globalOrder = (globalOrder && `/${globalOrder}`) || ''
-    toFind = (toFind && `/${toFind}`) || ''
-    console.log(API_URL + path + printBy + currentPage + globalOrder + toFind)
-    const fetchResult = await fetch(API_URL + path + printBy + currentPage + globalOrder + toFind, {
+const getRecords = async (path, printBy, currentPage, globalOrder) => {
+    const fetchResult = await fetch(`${API_URL + path}/${printBy}/${currentPage}/${globalOrder}`, {
+        method: 'GET'
+        , headers: {
+            'Accept': 'application/json'
+            , 'Content-Type': 'application/json'
+            , 'Authorization': `bearer ${sessionStorage.getItem(AUTH_TOKEN)}`
+        }
+    })
+    if (fetchResult.ok) {
+        return await fetchResult.json()
+    } else {
+        UseToast(`Error: ${fetchResult.status}`)
+        return null
+    }
+}
+
+const getRecord = async path => {
+    const fetchResult = await fetch(API_URL + path, {
         method: 'GET'
         , headers: {
             'Accept': 'application/json'
@@ -83,6 +92,7 @@ const deleteRecord = async path => {
 
 export {
     getRecords
+    , getRecord
     , addRecord
     , editRecord
     , deleteRecord

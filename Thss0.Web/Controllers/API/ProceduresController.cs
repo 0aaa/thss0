@@ -25,25 +25,17 @@ namespace Thss0.Web.Controllers.API
             _userManager = userManager;
         }
 
-        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}/{toFind?}")]
+        [HttpGet("{printBy:int?}/{page:int?}/{order:bool?}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true, string toFind = "")
+        public async Task<ActionResult<Response>> Get(int printBy = 20, int page = 1, bool order = true)
         {
-            IEnumerable<Procedure> procedures;
-            if (toFind == "")
-            {
-                procedures = await _context.Procedures.ToListAsync(); 
-            }
-            else
-            {
-                procedures = await _context.Procedures.Where(p => p.Name != null && p.Name.Contains(toFind)).ToListAsync();
-            }
+            var procedures = await _context.Procedures.ToListAsync();
             return Json(new Response
             {
                 Content = (order ? procedures.OrderBy(p => p.Name) : procedures.OrderByDescending(p => p.Name))
                                                 .Skip((page - 1) * printBy).Take(printBy)
                                                 .Select(p => new ViewModel { Id = p.Id, Name = p.Name })
-                , TotalAmount = procedures.Count()
+                , TotalAmount = procedures.Count
             });
         }
 

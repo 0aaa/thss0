@@ -10,10 +10,11 @@ const updateContent = stateCopy => {
         , currentPage: stateCopy.currentPage
     }
 }
-const updateDetailed = detailedItem => {
+const updateDetailed = (detailedItem, offcanvasName) => {
     return {
         type: 'updateDetailed'
         , detailedItem
+        , offcanvasName
     }
 }
 const updateAuth = (username = null) => {
@@ -33,17 +34,10 @@ const updateModal = modalName => {
         , modalName
     }
 }
-const updateOffcanvas = offcanvasName => {
-    return {
-        type: 'updateOffcanvas'
-        , offcanvasName: offcanvasName
-    }
-}
 export {
     updateContent
     , updateDetailed
     , updateAuth
     , updateTheme
     , updateModal
-    , updateOffcanvas
 }

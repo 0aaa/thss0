@@ -8,9 +8,6 @@ namespace Thss0.Web.Extensions
             => session.SetString(key, JsonConvert.SerializeObject(value));
 
         public static GenType Deserialize<GenType>(this ISession session, string key)
-        {
-            string value = session.GetString(key) ?? "";
-            return JsonConvert.DeserializeObject<GenType>(value)!;
-        }
+            => JsonConvert.DeserializeObject<GenType>(session.GetString(key) ?? string.Empty)!;
     }
 }

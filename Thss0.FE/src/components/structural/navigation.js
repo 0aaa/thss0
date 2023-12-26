@@ -38,18 +38,18 @@ const Navigation = props => {
                                 </NavLink>
                             </li>
                             <li className="nav-item">
-                                <NavLink to="/c/departments" className="nav-link">Departments</NavLink>
+                                <NavLink to="/departments" className="nav-link">Departments</NavLink>
                             </li>
                             <li className="nav-item">
-                                <NavLink to="/c/professional" className="nav-link">Professionals</NavLink>
+                                <NavLink to="/professional" className="nav-link">Professionals</NavLink>
                             </li>
                             {(isAuthenticated
                                 && <>
                                     <li className="nav-item">
-                                        <NavLink to="/c/client" className="nav-link">Clients</NavLink>
+                                        <NavLink to="/client" className="nav-link">Clients</NavLink>
                                     </li>
                                     <li className="nav-item">
-                                        <NavLink to="/c/results" className="nav-link">Results</NavLink>
+                                        <NavLink to="/results" className="nav-link">Results</NavLink>
                                     </li>
                                     <li className="nav-item">
                                         <NavLink to="/schedule" className="nav-link">Schedule</NavLink>
@@ -57,7 +57,7 @@ const Navigation = props => {
                                     <li className="nav-item input-group ms-auto" style={{ width: '164px', height: '42px' }}>
                                         {/* <input type="search" id="search" className="form-control border-0 border-bottom border-2 rounded-0 pe-0 ps-1" aria-label="Search" placeholder="Search" />
                                         <NavLink type="submit" to="/c/search" className="nav-link p-1"><img src="/magnifier.ico" alt="Search" /></NavLink> */}
-                                        <form onSubmit={event => { event.preventDefault(); navigate(`/c/search/${encodeURIComponent(event.target[0].value)}`) }}
+                                        <form onSubmit={event => { event.preventDefault(); navigate(`/search/${encodeURIComponent(event.target[0].value)}`) }}
                                                 role="search" className="input-group ms-auto" style={{ width: '164px' }}>
                                             <input type="search" aria-label="Search" className="form-control border-0 border-bottom rounded-0 btn-outline-dark pe-0 ps-1" placeholder="Search" />
                                             <button type="submit" className="btn border-0 border-bottom rounded-0 py-0 px-1">
@@ -104,7 +104,7 @@ const Navigation = props => {
             }
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/schedule" element={<Schedule />} />
-            <Route path="/c/:entityName/:toFind?/:order?/:printBy?/:page?" element={<List />} />
+            <Route path="/:entityName/:toFind?/:order?/:printBy?/:page?" element={<List />} />
             <Route path="*" element={<Error404 />} />
         </Routes>
         <ModalGen />

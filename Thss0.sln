@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Thss0.Web", "Thss0.Web\Thss0.Web.csproj", "{26994A6C-488D-40ED-A345-F5A19992DB97}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6744E52C-BF78-4C50-9F50-BAE1E89E1CE9} = {6744E52C-BF78-4C50-9F50-BAE1E89E1CE9}
+		{AC5AB53C-4B3A-451C-BC62-F64FBEEF3578} = {AC5AB53C-4B3A-451C-BC62-F64FBEEF3578}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Thss0.Devices", "Thss0.Devices\Thss0.Devices.csproj", "{AC5AB53C-4B3A-451C-BC62-F64FBEEF3578}"
 EndProject
@@ -11,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenAI", "OpenAI\OpenAI.csp
 EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Thss0.FE", "Thss0.FE\", "{6744E52C-BF78-4C50-9F50-BAE1E89E1CE9}"
 	ProjectSection(WebsiteProperties) = preProject
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.8"
 		Debug.AspNetCompiler.VirtualPath = "/localhost_58701"
 		Debug.AspNetCompiler.PhysicalPath = "Thss0.FE\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_58701\"

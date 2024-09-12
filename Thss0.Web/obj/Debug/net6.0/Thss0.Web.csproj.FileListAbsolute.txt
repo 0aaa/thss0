@@ -333,7 +333,6 @@ C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\bin\Debug\net6.0\System.IdentityM
 C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\bin\Debug\net6.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\bin\Debug\net6.0\System.Security.Permissions.dll
 C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\bin\Debug\net6.0\System.Windows.Extensions.dll
-C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.csproj.CopyComplete
 C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\bin\Debug\net6.0\Microsoft.Data.SqlClient.dll
 C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\bin\Debug\net6.0\Microsoft.EntityFrameworkCore.SqlServer.dll
@@ -358,3 +357,4 @@ C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\bin\Debug\net6.0\libman.json
 C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\bin\Debug\net6.0\OpenAI.dll
 C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\bin\Debug\net6.0\OpenAI.pdb
 C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.sourcelink.json
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Web\obj\Debug\net6.0\Thss0.Web.csproj.Up2Date

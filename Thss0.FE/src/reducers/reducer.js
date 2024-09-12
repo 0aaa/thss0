@@ -29,9 +29,10 @@ const appReducer = (state, action) => {
             return {
                 ...state
                 , modalName: action.modalName
+                , payload: action.payload
             }
         default:
-            return {...state}
+            return { ...state }
     }
 }
 export default appReducer 

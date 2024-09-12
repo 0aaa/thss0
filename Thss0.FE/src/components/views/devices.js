@@ -1,27 +1,29 @@
 import { Children, useState } from 'react'
-import { getRecords } from '../../services/entities'
+import { getRecord, getRecords } from '../../services/entities'
 import { connect } from 'react-redux'
 
 const Devices = props => {
     const [devices, setDevices] = useState();
-    getRecords('devices').then(res => {
-        setDevices(res.content);
-    })
+    if (!devices) {
+        getRecords('device', props.printBy, props.currentPage, props.globalOrder).then(res => {
+            setDevices(res?.content);
+        })
+    }
     return <>
         <div id="devicesBody" className="modal-body">
             {(devices
                 && <table className="table">
                     <tbody>
-                        {Children.toArray(devices.map(device =>
+                        {Children.toArray(devices.map(d =>
                             <tr>
-                                <td>{device.name}</td>
+                                <td>{d.name}</td>
                                 <td className="text-center">
-                                    {(device.availability && 'ready') || 'busy'}
+                                    {(d.availability && 'ready') || 'busy'}
                                 </td>
                                 <td className="text-end">
-                                    <button id={`${device.name}Btn`}
-                                            onClick={async event => { event.preventDefault(); await handleDevice({...props}, device.name, () => event.preventDefault()) }}
-                                            disabled={!device.availability} className="btn btn-outline-dark py-0 border-0 border-bottom rounded-0" data-bs-dismiss="modal">
+                                    <button id={`${d.name}Btn`}
+                                            onClick={async e => { e.preventDefault(); await handleDevice({ ...props }, d.name, () => e.preventDefault()) }}
+                                            disabled={!d.availability} className={`btn btn-outline-${props.btnColor} py-0 border-0 border-bottom rounded-0`} data-bs-dismiss="modal">
                                         Read
                                     </button>
                                 </td>
@@ -38,16 +40,17 @@ const Devices = props => {
             }
         </div>
         <div className="modal-footer">
-            <button className="btn btn-outline-dark col-2 border-0 border-bottom rounded-0" data-bs-dismiss="modal">Close</button>
+            <button className={`btn btn-outline-${props.btnColor} col-2 border-0 border-bottom rounded-0`} data-bs-dismiss="modal">Close</button>
         </div>
     </>
 }
 
 const handleDevice = async (props, name, preventDefault) => {
-    console.log(name)
-    const data = await getRecords(`devices/${name}`)
-    document.getElementById('content').value = data.content
-    props.updateContent(props, { target: { id: 'content', value: data.content }, preventDefault: () => preventDefault })
+    //const data = await getRecords(`device/${name}`, props.printBy, props.currentPage, props.globalOrder)
+    const data = await getRecord(`device/${name}`)
+    console.log(data)
+    document.getElementById('content-input').value = data.content
+    //updateContent(props, { target: { id: 'content', value: data.content }, preventDefault: () => preventDefault })
 }
 
 const mapStateToProps = state => state

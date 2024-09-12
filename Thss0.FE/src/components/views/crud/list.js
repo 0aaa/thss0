@@ -12,20 +12,23 @@ import Offcanvas from '../../structural/offcanvas'
 const List = props => {
     const params = useParams()
     const navigate = useNavigate()
-    const isAuthenticated = sessionStorage.getItem(AUTH_TOKEN)
-    if (!isAuthenticated && ['client', 'results'].includes(params.entityName)) {
+    let isAuthenticated = sessionStorage.getItem(AUTH_TOKEN)
+    if (!isAuthenticated && ['client', 'result'].includes(params.entityName)) {
         UseRedirect(HOME_PATH)
     }
     UseUpdate(props, (params.toFind && `search/${encodeURIComponent(params.toFind)}/${params.entityName}`) || params.entityName)
     const pagCoef = getPagCoef(props)
     const pagination = getPagination(props, pagCoef)
+    if (['search', 'substance'].includes(params.entityName)) {
+        isAuthenticated = false
+    }
     return <div className="vh-100">
             <h4 className="float-start">{params.entityName.replace(/^./, params.entityName[0].toUpperCase())}</h4>
             {(props.content
                 && <>
                     <div className="btn-group w-75 d-flex flex-wrap ms-auto me-2">
                         {isAuthenticated
-                            && <button onClick={event => props.updateDetailed(event, `${params.entityName}/${props.content[0]?.id}`, 'Add')} className={`btn btn-outline-${props.btnColor} border-0 border-bottom rounded-0 px-0`} data-bs-toggle="offcanvas" data-bs-target="#offcanvasCrud" aria-controls="offcanvasCrud">Add new</button>
+                            && <button onClick={e => props.updateDetailed(e, `${params.entityName}/${props.content[0]?.id}`, 'Add')} className={`btn btn-outline-${props.btnColor} border-0 border-bottom rounded-0 px-0`} data-bs-toggle="offcanvas" data-bs-target="#crud">Add new</button>
                         }
                         <a href={`data:application/octet-stream,${encodeURIComponent(JSON.stringify(props.content))}`}
                                 download={`${Date.now() + params.entityName}.txt`}
@@ -33,7 +36,7 @@ const List = props => {
                             Download
                         </a>
                         {params.entityName === 'search'
-                            && <select onChange={event => { params.entityName = event.target.value; props.updateContent({...props}, `search/${encodeURIComponent(params.toFind)}/${event.target.value}`, event) }}
+                            && <select onChange={e => { params.entityName = e.target.value; props.updateContent({...props}, `search/${encodeURIComponent(params.toFind)}/${e.target.value}`, e) }}
                                         defaultValue="Category"
                                         className={`btn btn-outline-${props.btnColor} border-0 border-bottom rounded-0 px-0`}>
                                     <option disabled hidden>Category</option>
@@ -42,8 +45,8 @@ const List = props => {
                                     ))}
                             </select>
                         }
-                        <select id="order" onChange={event =>
-                                props.updateContent({...props, globalOrder: event.target.value}, params.entityName, event)}
+                        <select id="order" onChange={e =>
+                                props.updateContent({...props, globalOrder: e.target.value}, params.entityName, e)}
                                 defaultValue="Order"
                                 className={`btn btn-outline-${props.btnColor} border-0 border-bottom px-0`}>
                             <option disabled hidden>Order</option>
@@ -51,8 +54,8 @@ const List = props => {
                                 <option value={globalOrder === 'ascendent'}>{globalOrder}</option>
                             ))}
                         </select>
-                        <select id="printBy" onChange={event =>
-                                props.updateContent({...props, printBy: +event.target.value}, params.entityName, event)}
+                        <select id="printBy" onChange={e =>
+                                props.updateContent({...props, printBy: +e.target.value}, params.entityName, e)}
                                 defaultValue="Print by"
                                 className={`btn btn-outline-${props.btnColor} border-0 border-bottom rounded-0 px-0`}>
                             <option disabled hidden>Print by</option>
@@ -69,36 +72,31 @@ const List = props => {
                                 <tr>
                                     <th className="p-0">
                                         <button name="nameOrder"
-                                                onClick={event => props.updateInPageOrder(event, {...props, inPageOrder: !props.inPageOrder})}
+                                                onClick={e => props.updateInPageOrder(e, {...props, inPageOrder: !props.inPageOrder})}
                                                 className={`btn btn-outline-${props.btnColor} border-0 rounded-0 w-100 text-start p-3`}>
                                             Name {(props.inPageOrder && <>&darr;</>) || <>&uarr;</>}
                                         </button>
                                     </th>
-                                    {isAuthenticated
-                                        && <>
-                                            <th />
-                                            <th />
-                                        </>
-                                    }
+                                    {isAuthenticated && <><th /><th /></>}
                                 </tr>
                             </thead>
                             <tbody>
                                 {Children.toArray(props.content.map(entityItem =>
                                     <tr id={entityItem.id}>
                                         <td className="p-0">
-                                            <button onClick={event => props.updateDetailed(event, `${params.entityName}/${entityItem.id}`, 'Details')} className={`btn btn-outline-${props.btnColor} border-0 rounded-0 w-100 text-start p-3`} data-bs-toggle="offcanvas" data-bs-target="#offcanvasCrud" aria-controls="offcanvasCrud">
+                                            <button onClick={e => props.updateDetailed(e, `${params.entityName}/${entityItem.id}`, 'Details')} className={`btn btn-outline-${props.btnColor} border-0 rounded-0 w-100 text-start p-3`} data-bs-toggle="offcanvas" data-bs-target="#crud">
                                                 {entityItem.name}
                                             </button>
                                         </td>
                                         {isAuthenticated
                                             && <>
                                                 <td className="p-0">
-                                                    <button onClick={event => props.updateDetailed(event, `${params.entityName}/${entityItem.id}`, 'Edit')} className={`btn btn-outline-${props.btnColor} border-0 rounded-0 w-100 text-start p-3`} data-bs-toggle="offcanvas" data-bs-target="#offcanvasCrud" aria-controls="offcanvasCrud">
+                                                    <button onClick={e => props.updateDetailed(e, `${params.entityName}/${entityItem.id}`, 'Edit')} className={`btn btn-outline-${props.btnColor} border-0 rounded-0 w-100 text-start p-3`} data-bs-toggle="offcanvas" data-bs-target="#crud">
                                                         Edit
                                                     </button>
                                                 </td>
                                                 <td className="p-0">
-                                                    <button onClick={event => props.updateDetailed(event, `${params.entityName}/${entityItem.id}`, 'Delete')} className={`btn btn-outline-${props.btnColor} border-0 rounded-0 w-100 text-start p-3`} data-bs-toggle="offcanvas" data-bs-target="#offcanvasCrud" aria-controls="offcanvasCrud">
+                                                    <button onClick={e => props.updateDetailed(e, `${params.entityName}/${entityItem.id}`, 'Delete')} className={`btn btn-outline-${props.btnColor} border-0 rounded-0 w-100 text-start p-3`} data-bs-toggle="offcanvas" data-bs-target="#crud">
                                                         Delete
                                                     </button>
                                                 </td>
@@ -110,12 +108,12 @@ const List = props => {
                         </table>
                         {props.totalPages > 1
                             && <ul className="pagination mx-auto">
-                                {Children.toArray(pagination.map((pageNum, index) => {
-                                        switch (index) {
+                                {Children.toArray(pagination.map((pageNum, i) => {
+                                        switch (i) {
                                             case 0:
                                                 return props.currentPage !== 1
                                                     && <li className="page-item">
-                                                        <button onClick={event => props.updateContent({...props, currentPage: pageNum - pagCoef}, params.entityName, event)}
+                                                        <button onClick={e => props.updateContent({...props, currentPage: pageNum - pagCoef}, params.entityName, e)}
                                                                 className="page-link bg-dark text-white rounded-0">
                                                             Back
                                                         </button>
@@ -123,14 +121,14 @@ const List = props => {
                                             case pagination.length - 1:
                                                 return props.currentPage !== props.totalPages
                                                     && <li className="page-item">
-                                                        <button onClick={event => props.updateContent({...props, currentPage: pageNum - pagCoef}, params.entityName, event)}
+                                                        <button onClick={e => props.updateContent({...props, currentPage: pageNum - pagCoef}, params.entityName, e)}
                                                                 className="page-link bg-dark text-white rounded-0">
                                                             Forward
                                                         </button>
                                                     </li>
                                             default:
                                                 return <li className="page-item">
-                                                        <button onClick={event => props.updateContent({...props, currentPage: pageNum}, params.entityName, event)}
+                                                        <button onClick={e => props.updateContent({...props, currentPage: pageNum}, params.entityName, e)}
                                                                 className="page-link bg-dark text-white rounded-0">
                                                             {pageNum.toString()}
                                                         </button>
@@ -157,8 +155,8 @@ const List = props => {
 const mapStateToProps = state => state
 
 const mapDispatchToProps = dispatch => ({
-    updateContent: async (stateCopy, path, event = null) => {
-        event && event.preventDefault()
+    updateContent: async (stateCopy, path, e = null) => {
+        e && e.preventDefault()
         setCurrentPage(stateCopy)
         const data = await getRecords(path, stateCopy.printBy, stateCopy.currentPage, stateCopy.globalOrder)
         if (!data) {
@@ -177,8 +175,8 @@ const mapDispatchToProps = dispatch => ({
             , currentPage: stateCopy.currentPage
         }))
     }
-    , updateInPageOrder: (event, stateCopy) => {
-        event.preventDefault()
+    , updateInPageOrder: (e, stateCopy) => {
+        e.preventDefault()
         dispatch(updateContent({...stateCopy
             , content: stateCopy.content
             , currentIndex: stateCopy.currentIndex
@@ -189,8 +187,8 @@ const mapDispatchToProps = dispatch => ({
             , currentPage: stateCopy.currentPage
         }))
     }
-    , updateDetailed: async (event, path, offcanvasName) => {
-        event.preventDefault()
+    , updateDetailed: async (e, path, offcanvasName) => {
+        e.preventDefault()
         dispatch(updateDetailed(await getRecord(path), offcanvasName))
     }
 })
@@ -212,8 +210,8 @@ const getPagCoef = props => {
 const getPagination = (props, pagCoef) => {
     const pagination = []
     pagination.push(props.currentPage - 1 + pagCoef)
-    for (let index = -1; index < 2 && index < props.totalPages - 1; index++) {
-        pagination.push(props.currentPage + index + pagCoef)
+    for (let i = -1; i < 2 && i < props.totalPages - 1; i++) {
+        pagination.push(props.currentPage + i + pagCoef)
     }
     pagination.push(props.currentPage + 1 + pagCoef)
     return pagination

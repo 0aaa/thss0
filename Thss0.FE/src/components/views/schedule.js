@@ -14,7 +14,7 @@ const Schedule = props => {
     }
     let sourceCellIndex
     return <>
-        <select onChange={event => props.updateContent({ ...props, order: event.target.value }, path, event)}
+        <select onChange={e => props.updateContent({ ...props, order: e.target.value }, path, e)}
                 defaultValue="Department"
                 className="btn btn-outline-dark border-0 border-bottom rounded-0">
             <option disabled hidden>Department</option>
@@ -30,7 +30,7 @@ const Schedule = props => {
                     {[...Array(timeLinePts).keys()].map(k => <th key={`th-${k}`} className={(k % 4 && ' ') || 'fs-5'}>{k % 4 * 15 || (k / 4 < 10 && '0') + k / 4}</th>)}
                 </tr>
             </thead>
-            <tbody onMouseDown={event => selectCell(event, sourceCellIndex)} onMouseOver={event => hoverCell(event, sourceCellIndex, timeLinePts)} onMouseUp={() => sourceCellIndex = null}>
+            <tbody onMouseDown={e => selectCell(e, sourceCellIndex)} onMouseOver={e => hoverCell(e, sourceCellIndex, timeLinePts)} onMouseUp={() => sourceCellIndex = null}>
                 {Children.toArray(props.content.map((professional, i) =>
                     <tr>
                         <td>{professional.userName}</td>
@@ -57,12 +57,12 @@ const mapDispatchToProps = dispatch => ({
         const professionals = (await getRecords(path)).content
         const procByProf = []
         let procedureIds = []
-        for (let index = 0; index < professionals.length; index++) {
-            procByProf.push({ userName: professionals[index]['userName'], procedures: [] })
-            procedureIds = (await getRecords(`users/${professionals[index]['id']}`))['procedure'].split('\n')
+        for (let i = 0; i < professionals.length; i++) {
+            procByProf.push({ userName: professionals[i]['userName'], procedures: [] })
+            procedureIds = (await getRecords(`users/${professionals[i]['id']}`))['procedure'].split('\n')
             for (let jndex = 0; jndex < procedureIds.length && procedureIds[jndex] !== ''; jndex++) {
-                procByProf[index]['procedures'].push(await getRecords(`procedures/${procedureIds[jndex]}`))
-                procByProf[index]['procedures'][jndex]['id'] = procedureIds[jndex]
+                procByProf[i]['procedures'].push(await getRecords(`procedures/${procedureIds[jndex]}`))
+                procByProf[i]['procedures'][jndex]['id'] = procedureIds[jndex]
             }
         }
         if (procByProf) {
@@ -81,18 +81,18 @@ const mapDispatchToProps = dispatch => ({
 
 export default connect(mapStateToProps, mapDispatchToProps)(Schedule)
 
-const selectCell = (event, sourceCellIndex) => {
-    event.preventDefault()
-    sourceCellIndex = [...event.target.parentNode.childNodes].indexOf(event.target)
-    event.target.className = (event.target.className === '' && 'bg-danger') || ''
+const selectCell = (e, sourceCellIndex) => {
+    e.preventDefault()
+    sourceCellIndex = [...e.target.parentNode.childNodes].indexOf(e.target)
+    e.target.className = (e.target.className === '' && 'bg-danger') || ''
 }
 
-const hoverCell = (event, sourceCellIndex, timeLinePts) => {
+const hoverCell = (e, sourceCellIndex, timeLinePts) => {
     if (!sourceCellIndex) {
         return
     }
-    const curCellIndex = [...event.target.parentNode.childNodes].indexOf(event.target)
-    event.target.className = event.target.parentNode.childNodes[curCellIndex
+    const curCellIndex = [...e.target.parentNode.childNodes].indexOf(e.target)
+    e.target.className = e.target.parentNode.childNodes[curCellIndex
             + ((curCellIndex > 1 && sourceCellIndex < curCellIndex && -1) || (curCellIndex !== timeLinePts && sourceCellIndex > curCellIndex))]
         .className
 }

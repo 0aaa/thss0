@@ -6,40 +6,41 @@ import { Offcanvas } from 'bootstrap'
 
 const Delete = props =>
     props.detailedItem
-        && <form onSubmit={event => props.handleDelete(event, {...props})} className="offcanvas-body d-flex flex-column h-100">
-            {Children.toArray(Object.keys(props.detailedItem).map(key =>
-                props.detailedItem[key] !== '' && !key.includes('Names')
-                && <dl>
-                    <dt>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</dt>
-                    <dd>
-                        {props.detailedItem[key].length > 0
-                            ? (['department', 'user', 'procedure', 'result'].includes(key)
-                                ? Children.toArray(props.detailedItem[key].split('\n').filter(e => e !== '').map((_, i) =>
-                                    <>
-                                        {props.detailedItem[`${key}Names`].split('\n')[i]}
-                                        <br />
-                                    </>))
-                                : props.detailedItem[key])
-                            : 'Empty'
-                        }
-                    </dd>
-                </dl>
-            ))}
-            <div className="btn-group w-100 mt-auto">
-                <input type="submit" value="Delete" className="btn btn-outline-danger border-0 border-bottom rounded-0 col-6" data-bs-dismiss="offcanvas" />
-                <button className="btn btn-outline-dark border-0 border-bottom rounded-0 col-6" data-bs-dismiss="offcanvas" aria-label="Close">Cancel</button>
-            </div>
-        </form>
+    && <form onSubmit={e => props.handleDelete(e, { ...props })} className="offcanvas-body d-flex flex-column h-100">
+        {props.detailedItem['photo'] && <img src={`data:image/jpg;base64, ${props.detailedItem['photo']}`} alt="" className="w-50" />}
+        {Children.toArray(Object.keys(props.detailedItem).map(k =>
+            props.detailedItem[k] !== '' && !k.includes('Names') && k !== 'photo'
+            && <dl>
+                <dt>{k.replace(/([A-Z]+)/g, ' $1').replace(/^./, k[0].toUpperCase())}</dt>
+                <dd>
+                    {props.detailedItem[k].length > 0
+                        ? (['department', 'client', 'professional', 'procedure', 'result'].includes(k)
+                            ? Children.toArray(props.detailedItem[k].split('\n').filter(e => e !== '').map((_, i) =>
+                                <>
+                                    {props.detailedItem[`${k}Names`].split('\n')[i]}
+                                    <br />
+                                </>))
+                            : props.detailedItem[k])
+                        : 'Empty'
+                    }
+                </dd>
+            </dl>
+        ))}
+        <div className="btn-group w-100 mt-auto">
+            <input type="submit" value="Delete" className="btn btn-outline-danger border-0 border-bottom rounded-0 col-6" data-bs-dismiss="offcanvas" />
+            <button type="button" className="btn btn-outline-dark border-0 border-bottom rounded-0 col-6" data-bs-dismiss="offcanvas">Cancel</button>
+        </div>
+    </form>
 
 const mapStateToProps = state => state
 
 const mapDispatchToProps = dispatch => ({
-    handleDelete: async (event, stateCopy) => {
-        event.preventDefault()
-        Offcanvas.getInstance('#offcanvasDelete').hide()
+    handleDelete: async (e, stateCopy) => {
+        e.preventDefault()
+        Offcanvas.getInstance('#crud').hide()
         await deleteRecord(`${stateCopy.entityName}/${stateCopy.detailedItem['id']}`)
         const data = await getRecords(stateCopy.entityName)
-        data && dispatch(updateContent({...stateCopy, content: data.content}))
+        data && dispatch(updateContent({ ...stateCopy, content: data.content }))
     }
 })
 

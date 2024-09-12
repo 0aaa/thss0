@@ -1,5 +1,5 @@
 import { NavLink, Route, Routes, useNavigate } from 'react-router-dom'
-// import App from '../App'
+import App from '../../App'
 import Logout from '../auth/logout'
 import Error404 from '../views/error404'
 import Privacy from '../views/privacy'
@@ -15,7 +15,7 @@ import ModalGen from './modal'
 const Navigation = props => {
     const isAuthenticated = sessionStorage.getItem(AUTH_TOKEN)
     const navigate = useNavigate()
-    return <div className="px-4">
+    return <div className="px-4 vh-100">
         <style>            
             {'.form-control:focus {box-shadow: none}'}
         </style>
@@ -38,10 +38,13 @@ const Navigation = props => {
                                 </NavLink>
                             </li>
                             <li className="nav-item">
-                                <NavLink to="/departments" className="nav-link">Departments</NavLink>
+                                <NavLink to="/department" className="nav-link">Departments</NavLink>
                             </li>
                             <li className="nav-item">
                                 <NavLink to="/professional" className="nav-link">Professionals</NavLink>
+                            </li>
+                            <li className="nav-item">
+                                <NavLink to="/substance" className="nav-link">Substances</NavLink>
                             </li>
                             {(isAuthenticated
                                 && <>
@@ -49,10 +52,10 @@ const Navigation = props => {
                                         <NavLink to="/client" className="nav-link">Clients</NavLink>
                                     </li>
                                     <li className="nav-item">
-                                        <NavLink to="/results" className="nav-link">Results</NavLink>
+                                        <NavLink to="/result" className="nav-link">Results</NavLink>
                                     </li>
                                     <li className="nav-item">
-                                        <NavLink to="/schedule" className="nav-link">Schedule</NavLink>
+                                        <NavLink to="/procedure" className="nav-link">Procedures</NavLink>
                                     </li>
                                     <li className="nav-item input-group ms-auto" style={{ width: '164px', height: '42px' }}>
                                         {/* <input type="search" id="search" className="form-control border-0 border-bottom border-2 rounded-0 pe-0 ps-1" aria-label="Search" placeholder="Search" />
@@ -65,7 +68,7 @@ const Navigation = props => {
                                             </button>
                                         </form>
                                     </li>
-                                    <li className="nav-item ps-1" style={{ paddingTop: '6px' }}>
+                                    <li className="nav-item ps-2" style={{ paddingTop: '6px' }}>
                                         <h5>{sessionStorage.getItem(USERNAME)}</h5>
                                     </li>
                                     <li className="nav-item">
@@ -74,10 +77,10 @@ const Navigation = props => {
                                 </>)
                                 || <>
                                     <li className="nav-item">
-                                        <a href="/" onClick={event => props.updateModal(event)} className="nav-link" data-bs-toggle="modal" data-bs-target="#modalGen">Register</a>
+                                        <a href="/" onClick={e => props.updateModal(e)} className="nav-link" data-bs-toggle="modal" data-bs-target="#modalGen">Register</a>
                                     </li>
                                     <li className="nav-item">
-                                        <a href="/" onClick={event => props.updateModal(event)} className="nav-link" data-bs-toggle="modal" data-bs-target="#modalGen">Login</a>
+                                        <a href="/" onClick={e => props.updateModal(e)} className="nav-link" data-bs-toggle="modal" data-bs-target="#modalGen">Login</a>
                                     </li>
                                 </>
                             }
@@ -85,7 +88,7 @@ const Navigation = props => {
                                 <NavLink to="/privacy" className="nav-link">Privacy</NavLink>
                             </li>
                             <li>
-                                <button onClick={event => props.updateTheme(event)} className="btn border-0 px-0">
+                                <button onClick={e => props.updateTheme(e)} className="btn border-0 px-0">
                                     <img src={`/${props.btnColor}.ico`} alt={props.btnColor} />
                                 </button>
                             </li>
@@ -95,7 +98,7 @@ const Navigation = props => {
             </div>
         </nav>
         <Routes>
-            {/* <Route exact path="/" element={App()} /> */}
+            <Route exact path="/" element={App()} /> 
             {isAuthenticated
                 && <>
                     <Route path="/logout" element={<Logout />} />
@@ -119,14 +122,14 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-    updateTheme: event => {
-        event.preventDefault()
+    updateTheme: e => {
+        e.preventDefault()
         document.documentElement.setAttribute('data-bs-theme', (document.documentElement.getAttribute('data-bs-theme') === 'light' && 'dark') || 'light')
         dispatch(updateTheme())
     }
-    , updateModal: event => {
-        event.preventDefault()
-        dispatch(updateModal(event.target.innerHTML))
+    , updateModal: e => {
+        e.preventDefault()
+        dispatch(updateModal(e.target.innerHTML))
     }
 })
 

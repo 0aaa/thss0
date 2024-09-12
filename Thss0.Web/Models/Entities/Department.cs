@@ -8,8 +8,8 @@ namespace Thss0.Web.Models.Entities
 
         [Required(ErrorMessage = "Name required")]
         [StringLength(64, ErrorMessage = "Wrong name length", MinimumLength = 2)]
-        public string Name { get; set; } = string.Empty;
-        public virtual HashSet<ApplicationUser> User { get; set; } = new();
-        public virtual HashSet<Procedure> Procedure { get; set; } = new();
+        public string Name { get; set; } = "";
+        public virtual HashSet<ApplicationUser> User { get; set; } = [];
+        public virtual HashSet<Procedure> Procedure { get; set; } = [];
     }
 }

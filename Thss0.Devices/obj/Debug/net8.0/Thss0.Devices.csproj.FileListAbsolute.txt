@@ -1,0 +1,15 @@
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\bin\Debug\net8.0\Thss0.Devices.exe
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\bin\Debug\net8.0\Thss0.Devices.deps.json
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\bin\Debug\net8.0\Thss0.Devices.runtimeconfig.json
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\bin\Debug\net8.0\Thss0.Devices.dll
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\bin\Debug\net8.0\Thss0.Devices.pdb
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\obj\Debug\net8.0\Thss0.Devices.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\obj\Debug\net8.0\Thss0.Devices.AssemblyInfoInputs.cache
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\obj\Debug\net8.0\Thss0.Devices.AssemblyInfo.cs
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\obj\Debug\net8.0\Thss0.Devices.csproj.CoreCompileInputs.cache
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\obj\Debug\net8.0\Thss0.Devices.sourcelink.json
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\obj\Debug\net8.0\Thss0.Devices.dll
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\obj\Debug\net8.0\refint\Thss0.Devices.dll
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\obj\Debug\net8.0\Thss0.Devices.pdb
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\obj\Debug\net8.0\Thss0.Devices.genruntimeconfig.cache
+C:\Users\pc\source\repos\exams\Thss0\Thss0.Devices\obj\Debug\net8.0\ref\Thss0.Devices.dll

@@ -9,6 +9,30 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\img\\avatar_0.jpg",
+      "PackagePath": "staticwebassets\\img\\avatar_0.jpg"
+    },
+    {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\img\\avatar_1.jpg",
+      "PackagePath": "staticwebassets\\img\\avatar_1.jpg"
+    },
+    {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\img\\avatar_2.png",
+      "PackagePath": "staticwebassets\\img\\avatar_2.png"
+    },
+    {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\img\\avatar_3.jpg",
+      "PackagePath": "staticwebassets\\img\\avatar_3.jpg"
+    },
+    {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\img\\avatar_4.jpg",
+      "PackagePath": "staticwebassets\\img\\avatar_4.jpg"
+    },
+    {
+      "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\img\\avatar_5.jpg",
+      "PackagePath": "staticwebassets\\img\\avatar_5.jpg"
+    },
+    {
       "Id": "C:\\Users\\pc\\source\\repos\\exams\\Thss0\\Thss0.Web\\wwwroot\\img\\clients.jpg",
       "PackagePath": "staticwebassets\\img\\clients.jpg"
     },

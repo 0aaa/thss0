@@ -28,10 +28,11 @@ const updateTheme = () => {
         type: 'updateTheme'
     }
 }
-const updateModal = modalName => {
+const updateModal = (modalName, payload) => {
     return {
         type: 'updateModal'
         , modalName
+        , payload
     }
 }
 export {

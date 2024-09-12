@@ -24,125 +24,124 @@ class Add extends React.Component {
         }
         if (this.state.keys.join() !== keys.join()) {
             this.setState({ keys })
-            this.state.roles.length === 0 && ['professional', 'client'].includes(this.props.entityName) && getRecords('roles', this.props.printBy, this.props.currentPage, this.props.globalOrder).then(res => this.setState({ roles: res.content }))
+            this.state.roles.length === 0 && ['professional', 'client'].includes(this.props.entityName) && getRecords('role', this.props.printBy, this.props.currentPage, this.props.globalOrder).then(res => this.setState({ roles: res.content }))
         }
     }
 
-    async updateDatalist(event) {
-        event.preventDefault()
-        const currentKey = event.target.id.replace(/.{6}$/, '')
-        const datalist = event.target.parentNode
+    async updateDatalist(e) {
+        e.preventDefault()
+        const currentKey = e.target.id.replace(/.{6}$/, '')
+        const datalist = e.target.parentNode
         let contentArr = []
         let optionToAdd = null
         if (['departmentNames', 'userNames', 'procedure', 'resultNames', 'procedureNames'].includes(currentKey)
-                && event.target.value.length > 3) {
-            contentArr = (await getRecords(`search/${encodeURIComponent(event.target.value)}/${currentKey}`, this.props.printBy, this.props.currentPage, this.props.globalOrder)).content
+                && e.target.value.length > 3) {
+            contentArr = (await getRecords(`search/${encodeURIComponent(e.target.value)}/${currentKey}`, this.props.printBy, this.props.currentPage, this.props.globalOrder)).content
         }
         datalist.innerHTML = ''
-        datalist.appendChild(event.target)
-        event.target.focus()
-        for (let index = -1; index < contentArr.length && event.target.value; index++) {
+        datalist.appendChild(e.target)
+        e.target.focus()
+        for (let i = -1; i < contentArr.length && e.target.value; i++) {
             optionToAdd = document.createElement('pre')
-            optionToAdd.className = 'border bg-white p-2 mb-0 user-select-none'
-            if (index > -1) {
-                optionToAdd.innerHTML = contentArr[index].name
-            } else if (currentKey.endsWith('Time') && event.target.value.match(/.{2}$/)[0] % 15) {
-                const timeToAdjust = new Date(event.target.value)
-                timeToAdjust.setMinutes(timeToAdjust.getMinutes() - timeToAdjust.getTimezoneOffset() + 15 - event.target.value.match(/.{2}$/)[0] % 15)
+            optionToAdd.className = 'border bg-white p-2 mb-0 user-select-none bg-opacity-75'
+            if (i > -1) {
+                optionToAdd.innerHTML = contentArr[i].name
+            } else if (currentKey.endsWith('Time') && e.target.value.match(/.{2}$/)[0] % 15) {
+                const timeToAdjust = new Date(e.target.value)
+                timeToAdjust.setMinutes(timeToAdjust.getMinutes() - timeToAdjust.getTimezoneOffset() + 15 - e.target.value.match(/.{2}$/)[0] % 15)
                 optionToAdd.innerHTML = timeToAdjust.toISOString().replace(/.{8}$/, '')
             } else if (currentKey === 'photo') {
                 const img = document.createElement('img')
-                img.src = URL.createObjectURL(event.target.files[0])
-                img.height = 320
+                img.src = URL.createObjectURL(e.target.files[0])
+                img.className = 'w-100'
                 optionToAdd.appendChild(img)
             } else {
-                optionToAdd.innerHTML = event.target.value
+                optionToAdd.innerHTML = e.target.value
             }
             datalist.appendChild(optionToAdd)
             this.drag(optionToAdd, currentKey)
         }
     }
 
-    drag(dataListOption, currentKey) {
-        let sourceX = 0
-        let sourceY = 0
-        let dragBuffer = null
-        const addForm = document.getElementById('addForm')
-        dataListOption.onmousedown = () => {
-            dataListOption.style.position = 'fixed'
-            sourceX = dataListOption.style.left
-            sourceY = dataListOption.style.top
-            dragBuffer = dataListOption
-            dragBuffer.className = 'border bg-white p-2 mb-0 user-select-none w-25'
-
-            document.onmouseup = event => {
+    drag(option, key) {
+        let srcX = 0
+        let srcY = 0
+        let buff = null
+        const form = document.getElementById('addForm')
+        option.onmousedown = () => {
+            option.style.position = 'fixed'
+            srcX = option.style.left
+            srcY = option.style.top
+            buff = option
+            buff.className = 'border bg-white p-2 mb-0 user-select-none w-25 bg-opacity-75'
+            document.onmouseup = e => {
                 document.onmousemove = null
                 document.onmouseup = null
-                if (event.pageX > addForm.offsetParent.offsetLeft && event.pageX < addForm.offsetParent.offsetLeft + addForm.offsetWidth
-                        && event.pageY > addForm.offsetTop && event.pageY < addForm.offsetTop + addForm.offsetHeight) {
+                if (e.pageX > form.offsetParent.offsetLeft && e.pageX < form.offsetParent.offsetLeft + form.offsetWidth
+                        && e.pageY > form.offsetTop && e.pageY < form.offsetTop + form.offsetHeight) {
 
-                    dragBuffer.style.position = 'static'
-                    const currentLi = document.getElementById(currentKey)
-                    currentLi.appendChild(dragBuffer)
-                    dragBuffer.className = 'border bg-white p-2 mb-0 user-select-none w-100'
-                    if (currentKey === 'password') {
-                        const passwordClone = dragBuffer.cloneNode(true)
-                        dragBuffer.className = 'd-none'
-                        passwordClone.innerHTML = passwordClone.innerHTML.replace(/\S/g, '*')
-                        passwordClone.onmouseup = () => {
-                            while (currentLi.childElementCount > 2) {
-                                currentLi.childNodes[2].remove()
-                            }
+                    buff.style.position = 'static'
+                    const li = document.getElementById(key)
+                    if (li.childElementCount > 2 && ['name', 'photo', 'pob', 'dob', 'role', 'email', 'phoneNumber', 'password'].includes(key)) {
+                        while (li.childElementCount > 2) {
+                            li.childNodes[2].remove()
                         }
-                        currentLi.appendChild(passwordClone)
                     }
-                } else if (dragBuffer) {
-                    dragBuffer.style.position = 'static'
-                    dragBuffer.style.left = sourceX
-                    dragBuffer.style.top = sourceY
-                    document.getElementById(`${currentKey}-input`).parentNode.appendChild(dragBuffer)
-                    dragBuffer.className = 'border bg-white p-2 mb-0 user-select-none w-100'
+                    li.appendChild(buff)
+                    buff.className = 'border bg-white p-2 mb-0 user-select-none w-100 bg-opacity-75'
+                    if (key === 'password') {
+                        const passwordClone = buff.cloneNode(true)
+                        buff.className = 'd-none'
+                        passwordClone.innerHTML = passwordClone.innerHTML.replace(/\S/g, '*')
+                        li.appendChild(passwordClone)
+                    }
+                } else if (buff) {
+                    buff.style.position = 'static'
+                    buff.style.left = srcX
+                    buff.style.top = srcY
+                    document.getElementById(`${key}-input`).parentNode.appendChild(buff)
+                    buff.className = 'border bg-white p-2 mb-0 user-select-none w-100 bg-opacity-75'
                 }
-                dragBuffer = null
+                buff = null
             }
-            document.onmousemove = event => {
-                if (dragBuffer) {
-                    dragBuffer.style.left = `${event.pageX}px`
-                    dragBuffer.style.top = `${event.clientY}px`
+            document.onmousemove = e => {
+                if (buff) {
+                    buff.style.left = `${e.pageX}px`
+                    buff.style.top = `${e.clientY}px`
                 }
             }
         }
     }
 
-    printForm(event) {
+    printForm(e) {
         let currentIndex = 0
-        if (event.target.className === 'active') {
-            currentIndex = [...event.target.parentNode.childNodes].indexOf(event.target)
+        if (e.target.className === 'active') {
+            currentIndex = [...e.target.parentNode.childNodes].indexOf(e.target)
         } else {
-            currentIndex = [...document.getElementsByClassName('carousel-item')].filter(slide => slide.parentNode.parentNode.id === 'addCarousel').findIndex(i => i.className.includes('active'))
-            if (event.target.className.includes('carousel-control-next')) {
+            currentIndex = [...document.getElementsByClassName('carousel-item')].filter(sl => sl.parentNode.parentNode.id === 'addCarousel').findIndex(i => i.className.includes('active'))
+            if (e.target.className.includes('carousel-control-next')) {
                 currentIndex = (currentIndex < this.state.keys.length - 1 && currentIndex + 1) || 0
             } else {
                 currentIndex = (currentIndex === 0 && this.state.keys.length - 1) || currentIndex - 1
             }
         }
         const lis = document.getElementsByClassName('add-li')
-        for (let index = 0; index < lis.length; index++) {
-            lis[index].className = ((index <= currentIndex || lis[index].childNodes[2]) && 'add-li d-block') || 'add-li d-none'
+        for (let i = 0; i < lis.length; i++) {
+            lis[i].className = ((i <= currentIndex || lis[i].childNodes[2]) && 'add-li d-block') || 'add-li d-none'
         }
     }
 
     render() {
         return this.state.keys.length > 0
             && <div className="d-flex gap-1 offcanvas-body">
-                <form id="addForm" onSubmit={event => this.props.handleAdd(event, {...this.props})}
+                <form id="addForm" onSubmit={e => this.props.handleAdd(e, {...this.props})}
                         className="d-flex flex-column h-100 w-50"
                         encType="multipart/form-data">
-                    <ul className="list-unstyled ms-2">
-                        {Children.toArray(this.state.keys.map(key =>
-                            <li id={key} className={`add-li ${this.state.keys.indexOf(key) > 0 && 'd-none'}`}>
-                                <span id={`${key}Error`} className="d-none"></span>
-                                <span>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</span>                                
+                    <ul className="list-unstyled ms-2 overflow-y-auto">
+                        {Children.toArray(this.state.keys.map(k =>
+                            <li id={k} className={`add-li ${this.state.keys.indexOf(k) > 0 && 'd-none'}`}>
+                                <span id={`${k}Error`} className="d-none"></span>
+                                <span>{k.replace(/([A-Z]+)/g, ' $1').replace(/^./, k[0].toUpperCase())}</span>                                
                             </li>
                         ))}
                     </ul>
@@ -151,47 +150,47 @@ class Add extends React.Component {
                 <div id="addCarousel" className="carousel slide w-50">
                     <div className="carousel-indicators">
                         {Children.toArray([...Array(this.state.keys.length).keys()].map(i =>
-                            <button onClick={event => this.printForm(event)} className={(i === 0 && 'active') || ''} data-bs-target="#addCarousel" data-bs-slide-to={i} aria-current="true" aria-label={`Slide ${i}`}></button>
+                            <button onClick={e => this.printForm(e)} className={(i === 0 && 'active') || ''} data-bs-target="#addCarousel" data-bs-slide-to={i} aria-current="true"></button>
                         ))}
                     </div>
-                    <div className="carousel-inner">
-                        {Children.toArray(this.state.keys.map(key => {
+                    <div className="carousel-inner h-75 overflow-y-auto">
+                        {Children.toArray(this.state.keys.map(k => {
                             return {
-                                'content': <div className={`carousel-item ${(this.state.keys.indexOf(key) === 0 && 'active') || ''}`}>
+                                'content': <div className={`carousel-item ${(this.state.keys.indexOf(k) === 0 && 'active') || ''}`}>
                                         <div className="d-flex">
-                                            <button onClick={event => this.props.updateModal(event)} className="btn btn-outline-dark border-0 border-bottom rounded-0 mb-1 ms-auto text-white"
-                                                    data-bs-toggle="modal" data-bs-target="#modal-gen">
+                                            <button onClick={e => this.props.updateModal(e)} className="btn btn-outline-dark border-0 border-bottom rounded-0 mb-1 ms-auto text-white"
+                                                    data-bs-toggle="modal" data-bs-target="#modalGen">
                                                 Devices
                                             </button>
                                         </div>
-                                        <textarea id={`${key}-input`} onChange={event => this.updateDatalist(event)} className="form-control border-0 rounded-0" placeholder="Content" />
+                                        <textarea id={`${k}-input`} onChange={e => this.updateDatalist(e)} rows='20' className="form-control border-0 rounded-0 bg-white bg-opacity-75 text-dark" placeholder="Content" />
                                     </div>,
-                                'role': <div className={`carousel-item ${(this.state.keys.indexOf(key) === 0 && 'active') || ''}`}>
-                                        <select id={`${key}-input`} onChange={event => this.updateDatalist(event)} defaultValue="Role" className="form-control border-0 rounded-0">
+                                'role': <div className={`carousel-item ${(this.state.keys.indexOf(k) === 0 && 'active') || ''}`}>
+                                        <select id={`${k}-input`} onChange={e => this.updateDatalist(e)} defaultValue="Role" className="form-control border-0 rounded-0">
                                             <option disabled hidden>Role</option>
                                             {Children.toArray(this.state.roles?.map(role =>
                                                 <option value={role['name']}>{role['name']}</option>
                                             ))}
                                         </select>
                                     </div>
-                                }[key]
-                                || <div className={`carousel-item ${(this.state.keys.indexOf(key) === 0 && 'active') || ''}`}>
-                                    <input type={((key.endsWith('Time') || key === 'doB') && 'datetime-local') || (['password', 'email'].includes(key) && key) || (key === 'photo' && 'file') || 'text'}
-                                        id={`${key}-input`}
-                                        onChange={event => this.updateDatalist(event)}
-                                        placeholder={key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}
+                                }[k]
+                                || <div className={`carousel-item ${(this.state.keys.indexOf(k) === 0 && 'active') || ''}`}>
+                                    <input type={((k.endsWith('Time') || k === 'doB') && 'datetime-local') || (['password', 'email'].includes(k) && k) || (k === 'photo' && 'file') || 'text'}
+                                        id={`${k}-input`}
+                                        onChange={e => this.updateDatalist(e)}
+                                        placeholder={k.replace(/([A-Z]+)/g, ' $1').replace(/^./, k[0].toUpperCase())}
                                         className="form-control border-0 rounded-0" />
                                 </div>
                         }))}
                     </div>
-                    <button onClick={event => this.printForm(event)} className="carousel-control-prev mt-auto mb-3"
+                    <button onClick={e => this.printForm(e)} className="carousel-control-prev mt-auto mb-3"
                             data-bs-target="#addCarousel" data-bs-slide="prev" style={{ height: 'fit-content' }}>
-                        <span className="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span className="carousel-control-prev-icon"></span>
                         <span className="visually-hidden">Previous</span>
                     </button>
-                    <button onClick={event => this.printForm(event)} className="carousel-control-next mt-auto mb-3"
+                    <button onClick={e => this.printForm(e)} className="carousel-control-next mt-auto mb-3"
                             data-bs-target="#addCarousel" data-bs-slide="next" style={{ height: 'fit-content' }}>
-                        <span className="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span className="carousel-control-next-icon"></span>
                         <span className="visually-hidden">Next</span>
                     </button>
                 </div>
@@ -204,60 +203,60 @@ const AddRouter = props => <Add {...props} />
 const mapStateToProps = state => state
 
 const mapDispatchToProps = dispatch => ({
-    handleAdd: async (event, stateCopy) => {
-        event.preventDefault()
+    handleAdd: async (e, stateCopy) => {
+        e.preventDefault()
         const addDictionary = {}
-        await readForm(event, addDictionary)
+        await readForm(e, addDictionary)
         clearLi()
         await addRecord(stateCopy.entityName, addDictionary)
         const data = await getRecords(stateCopy.entityName, stateCopy.printBy, stateCopy.currentPage, stateCopy.globalOrder)
         data && dispatch(updateContent({...stateCopy, content: data.content}))
     }
-    , updateModal: event => {
-        event.preventDefault()
-        dispatch(updateModal(event.target.innerHTML))
+    , updateModal: e => {
+        e.preventDefault()
+        dispatch(updateModal(e.target.innerHTML))
     }
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(AddRouter)
 
-const readForm = async (event, addDictionary) => {
-    const addCredentials = [...event.target.childNodes[0].childNodes]
-    const carouselSlides = document.getElementById('addCarousel').childNodes[1].childNodes
-    let controlBuffer
-    for (let index = 0; index < addCredentials.length; index++) {
-        if (addCredentials[index].childNodes[2]) {
-            addDictionary[addCredentials[index].id] = ''
+const readForm = async (e, addDictionary) => {
+    const toSet = [...e.target.childNodes[0].childNodes]
+    const slides = document.getElementById('addCarousel').childNodes[1].childNodes
+    let buff
+    for (let i = 0; i < toSet.length; i++) {
+        if (toSet[i].childNodes[2]) {
+            addDictionary[toSet[i].id] = ''
         }
-        while (addCredentials[index].childElementCount > 2) {
-            if (addCredentials[index].id === 'photo') {
+        while (toSet[i].childElementCount > 2) {
+            if (toSet[i].id === 'photo') {
                 addDictionary['photo'] = Array.from(new Int8Array(await new Promise(resolve => {
-                    const reader = new FileReader()
-                    reader.onloadend = e => resolve(e.target.result)
-                    reader.readAsArrayBuffer(document.querySelector('input[type=file]').files[0])
+                    const fr = new FileReader()
+                    fr.onloadend = e => resolve(e.target.result)
+                    fr.readAsArrayBuffer(document.querySelector('input[type=file]').files[0])
                 })))
-            } else if (addCredentials[index].id !== 'password' || addCredentials[index].childNodes[2].className === 'd-none') {
-                addDictionary[addCredentials[index].id] += `${addCredentials[index].childNodes[2].innerHTML} `
+            } else if (toSet[i].id !== 'password' || toSet[i].childNodes[2].className === 'd-none') {
+                addDictionary[toSet[i].id] += `${toSet[i].childNodes[2].innerHTML} `
             }
-            addCredentials[index].childNodes[2].remove()
+            toSet[i].childNodes[2].remove()
         }
-        if (addDictionary[addCredentials[index].id] && addCredentials[index].id !== 'photo') {
-            addDictionary[addCredentials[index].id] = addDictionary[addCredentials[index].id].trimEnd()
+        if (addDictionary[toSet[i].id] && toSet[i].id !== 'photo') {
+            addDictionary[toSet[i].id] = addDictionary[toSet[i].id].trimEnd()
         }
-        controlBuffer = carouselSlides[index].childNodes[0]
-        controlBuffer.value = ''
-        carouselSlides[index].innerHTML = ''
-        carouselSlides[index].appendChild(controlBuffer)
-        carouselSlides[index].className = 'carousel-item'
-        carouselSlides[0].parentNode.previousSibling.childNodes[index].className = ''
+        buff = slides[i].childNodes[0]
+        buff.value = ''
+        slides[i].innerHTML = ''
+        slides[i].appendChild(buff)
+        slides[i].className = 'carousel-item'
+        slides[0].parentNode.previousSibling.childNodes[i].className = ''
     }
-    carouselSlides[0].className += ' active'
-    carouselSlides[0].parentNode.previousSibling.childNodes[0].className = 'active'
+    slides[0].className += ' active'
+    slides[0].parentNode.previousSibling.childNodes[0].className = 'active'
 }
 
 const clearLi = () => {
     const lis = document.getElementsByClassName('add-li')
-    for (let index = 1; index < lis.length; index++) {
-        lis[index].className = 'add-li d-none'
+    for (let i = 1; i < lis.length; i++) {
+        lis[i].className = 'add-li d-none'
     }
 }

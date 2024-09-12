@@ -10,12 +10,12 @@ const UseRedirect = path => {
 
 const UseUpdate = (props, path) => {
     // eslint-disable-next-line
-    useEffect(() => { props.updateContent({...props}, path) }, [path])
+    useEffect(() => { props.updateContent({ ...props }, path) }, [path])
 }
 
-const UseToast = message => {
+const UseToast = msg => {
     const div = document.createElement('div')
-    div.innerHTML = toast(message)
+    div.innerHTML = toast(msg)
     document.getElementById('root').appendChild(div)
     const toasts = document.querySelectorAll('.toast')
     toasts[toasts.length - 1] && new Toast(toasts[toasts.length - 1]).show()

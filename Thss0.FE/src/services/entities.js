@@ -12,7 +12,7 @@ const getRecords = async (path, printBy, currentPage, globalOrder) => {
         }
     })
     if (fetchResult.ok) {
-        return await fetchResult.json()
+        return await fetchResult.json();
     } else {
         UseToast(`Error: ${fetchResult.status}`)
         return null

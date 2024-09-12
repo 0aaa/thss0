@@ -4,12 +4,12 @@ import AddRouter from '../views/crud/add'
 import EditRouter from '../views/crud/edit'
 import Delete from '../views/crud/delete'
 
-const OffcanvasGen = props =>
-    <div id="offcanvasCrud" tabIndex="-1" className="offcanvas offcanvas-end w-50 text-dark" data-bs-scroll="true" aria-labelledby="offcanvasCrudLabel" style={{ background: 'url(../../img/pob.jpg)' }}>
-        <div className="offcanvas-header">
-            <h5 id="offcanvasCrudLabel" className="offcanvas-title ms-2">{props.offcanvasName} {props.entityName}</h5>
-            <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-            <div id="detailsError" className="alert alert-danger d-none"></div>
+const OffcanvasGen = props => {
+    return <div id="crud" tabIndex="-1" className="offcanvas offcanvas-end w-50 text-dark fs-5" style={{ backgroundImage: `url(../../img/${props.entityName}${(Math.floor(Math.random() * 4))}.jpg)`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
+        <div className="offcanvas-header bg-white bg-opacity-50 mx-3">
+            <h5 className="offcanvas-title">{props.offcanvasName} {props.entityName}</h5>
+            <button className="btn-close" data-bs-dismiss="offcanvas"></button>
+            <div id="detailsErr" className="alert alert-danger d-none"></div>
         </div>
         {{
             'Add': <AddRouter entityName={props.entityName} />
@@ -18,6 +18,7 @@ const OffcanvasGen = props =>
             , 'Delete': <Delete />
         }[props.offcanvasName]}
     </div>
+}
 
 const mapStateToProps = state => ({ offcanvasName: state.offcanvasName })
 

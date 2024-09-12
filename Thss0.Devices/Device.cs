@@ -7,44 +7,47 @@ namespace Thss0.Devices
     internal class Device
     {
         public Device()
-            => Server().Wait();
+        {
+            Server().Wait();
+        }
 
         private static async Task Server()
         {
-            const string localhost = "127.0.0.1";
-            const ushort port = 25545;
-            const ushort clientsMax = 1;
-            var server = new TcpListener(new IPEndPoint(IPAddress.Parse(localhost), port));
-            ushort clientsCount = 0;
-            server.Start();
+            const string ip = "127.0.0.1";
+            const int port = 25545;
+            const int clientsMax = 2;
+            var s = new TcpListener(new IPEndPoint(IPAddress.Parse(ip), port));
+            var clientsCnt = 0;
+            s.Start();
             Console.WriteLine("the server launch");
             while (true)
             {
-                var client = await server.AcceptTcpClientAsync();
-                if (clientsCount < clientsMax)
+                var c = await s.AcceptTcpClientAsync();
+                if (clientsCnt < clientsMax)
                 {
-                    clientsCount++;
-                    Console.WriteLine($"{DateTime.Now.ToShortTimeString()}\t{client.Client.RemoteEndPoint}");
+                    clientsCnt++;
+                    Console.WriteLine($"{DateTime.Now.ToShortTimeString()}\t{c.Client.RemoteEndPoint}");
                     await Task.Run(async () =>
                     {
-                        await client.GetStream().WriteAsync(Encoding.UTF8.GetBytes("100"));// "Continue".
-                        HandleClient(client);
-                        Console.WriteLine($"{DateTime.Now.ToShortTimeString()}\tdisconnected\t{client.Client.RemoteEndPoint}");
-                        client.Close();
-                        clientsCount--;
+                        await c.GetStream().WriteAsync(Encoding.UTF8.GetBytes("100"));// "Continue".
+                        HandleClient(c);
+                        Console.WriteLine($"{DateTime.Now.ToShortTimeString()}\tdisconnected\t{c.Client.RemoteEndPoint}");
+                        c.Close();
+                        clientsCnt--;
                     });
                 }
                 else
                 {
-                    await client.GetStream().WriteAsync(Encoding.UTF8.GetBytes("503"));// "Service Unavailable".
-                    client.Close();
+                    await c.GetStream().WriteAsync(Encoding.UTF8.GetBytes("503"));// "Service Unavailable".
+                    c.Close();
                 }
             }
         }
-        private static void HandleClient(TcpClient client)
+
+        private static void HandleClient(TcpClient c)
         {
-            const ushort attemptsMax = 1;
-            const string EcgData = @"  time    MLII    V1
+            const int attemptsMax = 2;
+            const string ecgData = @"  time    MLII    V1
                 (sec)   (mV)    (mV)
                 300.000  -0.095  -0.140
                 300.003  -0.110  -0.140
@@ -65,31 +68,31 @@ namespace Thss0.Devices
             //     UROBILINOGEN 0.3 0.1 - 1.0 mg/dL
             //     NITRITE POSITIVE H NEGATIVE
             //     LEUK ESTERASE 2+ H NEGATIVE";
-            var authCredentials = new[] { new { username = "admin", password = "admin" } };
-            ushort attempts = 0;
-            ushort dataMax = 0;
-            ushort dataCount = 0;
-            var buffer = new byte[1024];
-            var inputAndPassword = new string[2];
+            var authCredentials = new[] { new { username = "admin", pwd = "admin" } };
+            var attempts = 0;
+            var dataMax = 0;
+            var dataCnt = 0;
+            var buff = new byte[1024];
+            var cmd = new string[2];
             while (attempts < attemptsMax)
             {
-                inputAndPassword = Encoding.Default.GetString(buffer.Take(client.GetStream().Read(buffer)).ToArray()).Split('\t');
-                if (inputAndPassword[0] == "226" || inputAndPassword[0] == "" || inputAndPassword[1] == "")// "IM Used".
+                cmd = Encoding.Default.GetString(buff.Take(c.GetStream().Read(buff)).ToArray()).Split('\t');
+                if (cmd[0] == "226" || cmd[0] == "" || cmd[1] == "")// "IM Used".
                 {
                     break;
                 }
-                if (authCredentials.Any(a => a.username == inputAndPassword[0] && a.password == inputAndPassword[1]))
+                if (authCredentials.Any(a => a.username == cmd[0] && a.pwd == cmd[1]))
                 {
                     attempts = attemptsMax;
-                    client.GetStream().Write(Encoding.UTF8.GetBytes("200"));// "OK".
-                    dataMax = Convert.ToUInt16(Encoding.Default.GetString(buffer.Take(client.GetStream().Read(buffer)).ToArray()));
-                    while (dataCount < dataMax)
+                    c.GetStream().Write(Encoding.UTF8.GetBytes("200"));// "OK".
+                    dataMax = Convert.ToInt32(Encoding.Default.GetString(buff.Take(c.GetStream().Read(buff)).ToArray()));
+                    while (dataCnt < dataMax)
                     {
-                        if (Encoding.Default.GetString(buffer.Take(client.GetStream().Read(buffer)).ToArray()) == "100"/* && dataCount!= _dataMax - 1*/)// "Continue".
+                        if (Encoding.Default.GetString(buff.Take(c.GetStream().Read(buff)).ToArray()) == "100")// "Continue".
                         {
-                            dataCount++;
-                            client.GetStream().Write(Encoding.UTF8.GetBytes(EcgData));
-                            Console.WriteLine($"{EcgData}\t200");// "OK".
+                            dataCnt++;
+                            c.GetStream().Write(Encoding.UTF8.GetBytes(ecgData));
+                            Console.WriteLine($"{ecgData}\t200");// "OK".
                         }
                         else
                         {
@@ -97,7 +100,7 @@ namespace Thss0.Devices
                             break;
                         }
                     }
-                    client.GetStream().Write(Encoding.UTF8.GetBytes("226"));// "IM Used"
+                    c.GetStream().Write(Encoding.UTF8.GetBytes("226"));// "IM Used".
                     return;
                 }
                 else
@@ -105,12 +108,12 @@ namespace Thss0.Devices
                     attempts++;
                     if (attempts == attemptsMax)
                     {
-                        client.GetStream().Write(Encoding.UTF8.GetBytes("401"));// "Unauthorized".
+                        c.GetStream().Write(Encoding.UTF8.GetBytes("401"));// "Unauthorized".
                         return;
                     }
                 }
             }
-            client.GetStream().Write(Encoding.UTF8.GetBytes("429"));// "Too Many Requests".
+            c.GetStream().Write(Encoding.UTF8.GetBytes("429"));// "Too Many Requests".
         }
     }
 }

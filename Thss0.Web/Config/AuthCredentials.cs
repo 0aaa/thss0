@@ -9,7 +9,7 @@ namespace Thss0.Web.Config
         public const string ISSUER = "Server";
         public const string AUDIENCE = "Client";
         public const int LIFETIME = 7;
-        private const string SIGNING_KEY = "KeyKeyKeyKeyKeyKeyKeyKeyKeyKey";
+        private const string SIGNING_KEY = "KeyKeyKeyKeyKeyKeyKeyKeyKeyKeyKey";
         public static SymmetricSecurityKey GetSigningKey()
             => new(Encoding.Default.GetBytes(SIGNING_KEY));
     }

@@ -16,23 +16,12 @@ namespace Thss0.Web.Controllers.API
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, professional")]
-    public class SearchController : Controller
+    public partial class SearchController(ApplicationDbContext context, UserManager<ApplicationUser> userManager) : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly List<ViewModel?> _totalResults;
-        private readonly string[] _entityTypes;
-        private int _typesCnt;
+        private readonly List<ViewModel?> _totalResults = [];
+        private readonly string[] _entityTypes = ["departments", "users", "procedures", "results", "substances"];
+        private int _typesCnt = 0;
         private IEnumerable<ViewModel?>? _searchResult;
-
-        public SearchController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
-        {
-            _context = context;
-            _userManager = userManager;
-            _entityTypes = new[] { "departments", "users", "procedures", "results", "substances" };
-            _typesCnt = 0;
-            _totalResults = new List<ViewModel?>();
-        }
 
         [HttpGet("{toFind}/{searchEntity?}/{printBy:int?}/{page:int?}/{order:bool?}")]
         public async Task<ActionResult<Response>> GetResults(string toFind, string searchEntity = "", int printBy = 20, int page = 1, bool order = true)
@@ -43,7 +32,7 @@ namespace Thss0.Web.Controllers.API
             {
                 case "departments":
                 case "departmentNames":
-                    var departments = await _context.Departments.Where(d => d.Name != null && d.Name.Contains(toFind)).ToListAsync();
+                    var departments = await context.Departments.Where(d => d.Name != null && d.Name.Contains(toFind)).ToListAsync();
                     res = AdjustResults(departments.Cast<IEntity>(), printBy, page, order);
                     break;
                 case "clients":
@@ -55,11 +44,11 @@ namespace Thss0.Web.Controllers.API
                     List<ApplicationUser> users;
                     if (searchEntity == "professionals" || searchEntity == "clients")
                     {
-                        users = (await _userManager.GetUsersInRoleAsync(Regex.Replace(searchEntity, ".$", ""))).ToList();
+                        users = [.. (await userManager.GetUsersInRoleAsync(RoleName().Replace(searchEntity, "")))];
                     }
                     else
                     {
-                        users = await _userManager.Users.ToListAsync();
+                        users = await userManager.Users.ToListAsync();
                     }
                     users = users.Where(u => FindByString(u, sourceProperties, toFind)).ToList();
                     res = AdjustResults(users.Cast<IEntity>(), printBy, page, order);
@@ -67,7 +56,7 @@ namespace Thss0.Web.Controllers.API
                     break;
                 case "procedures":
                 case "procedureNames":
-                    var procedures = await _context.Procedures.Where(p => p.Name != null && p.Name.Contains(toFind)).ToListAsync();
+                    var procedures = await context.Procedures.Where(p => p.Name != null && p.Name.Contains(toFind)).ToListAsync();
                     res = AdjustResults(procedures.Cast<IEntity>(), printBy, page, order);
                     break;
                 case "results":
@@ -77,7 +66,7 @@ namespace Thss0.Web.Controllers.API
                     break;
                 case "substances":
                 case "substanceNames":
-                    var substance = await new SubstancesController(_context).Get(toFind, false);
+                    var substance = await new SubstanceController(context).Get(toFind, FdaId().IsMatch(toFind));
                     var substances = new Response
                     {
                         Content = new List<SubstanceViewModel>().AsEnumerable()
@@ -106,10 +95,10 @@ namespace Thss0.Web.Controllers.API
             return Json(res);
         }
 
-        private bool FindByString(ApplicationUser source, PropertyInfo[] sourceProperties, string toFind)
+        private static bool FindByString(ApplicationUser source, PropertyInfo[] sourceProperties, string toFind)
         {
             string value;
-            for (ushort i = 0; i < sourceProperties.Length; i++)
+            for (int i = 0; i < sourceProperties.Length; i++)
             {
                 value = sourceProperties[i].GetValue(source)?.ToString() ?? "";
                 if (value != "" && value.Contains(toFind))
@@ -120,7 +109,7 @@ namespace Thss0.Web.Controllers.API
             return false;
         }
 
-        private Response AdjustResults(IEnumerable<IEntity> source, int printBy = 20, int page = 1, bool order = true)
+        private static Response AdjustResults(IEnumerable<IEntity> source, int printBy = 20, int page = 1, bool order = true)
         {
             return new Response
             {
@@ -130,5 +119,10 @@ namespace Thss0.Web.Controllers.API
                 , TotalAmount = source.Count()
             };
         }
+
+        [GeneratedRegex(".$")]
+        private static partial Regex RoleName();
+        [GeneratedRegex("^[0-9]{4,5}-[0-9]{3,4}_[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")]
+        private static partial Regex FdaId();
     }
 }

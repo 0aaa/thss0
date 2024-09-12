@@ -4,168 +4,168 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Thss0.Web.Extensions
 {
-    public class InitializationHelper
+    public partial class InitializationHelper
     {
-        const ushort RESULT_MIN_GAP = 5;
-        private readonly string[] _departmentProperties = { "Name" };
-        private readonly string[] _userProperties = { "Name", "DoB", "PoB", "Photo" };
-        private readonly string[] _procedureProperties = { "Name", "BeginTime", "EndTime" };
-        private readonly string[] _resultProperties = { "Name", "ObtainmentTime", "Content" };
-        private readonly string[] _roleProperties = { "Name" };
+        const int RESULT_MIN_GAP = 5;
+        //private static readonly string[] first = ["Id"];
+        private readonly string[] _departmentProperties = ["Name"];
+        private readonly string[] _userProperties = ["Name", "DoB", "PoB", "Photo"];
+        private readonly string[] _procedureProperties = ["Name", "BeginTime", "EndTime"];
+        private readonly string[] _resultProperties = ["Name", "ObtainmentTime", "Content"];
+        private readonly string[] _roleProperties = ["Name"];
 
-        public void Validation(ModelStateDictionary state, object viewModel)
+        public void Validation(ModelStateDictionary state, object vm)
         {
-            var type = viewModel.GetType();
-            var propertyNames = Array.Empty<string>();
+            var type = vm.GetType();
+            var propNames = Array.Empty<string>();
             string value;
             switch (type.Name)
             {
                 case "DepartmentViewModel":
-                    propertyNames = _departmentProperties;
+                    propNames = _departmentProperties;
                     break;
                 case "UserViewModel":
-                    propertyNames = _userProperties;
+                    propNames = _userProperties;
                     break;
                 case "ProcedureViewModel":
-                    propertyNames = _procedureProperties;
+                    propNames = _procedureProperties;
                     break;
                 case "ResultViewModel":
-                    propertyNames = _resultProperties;
+                    propNames = _resultProperties;
                     break;
                 case "IdentityRoleProxy":
-                    propertyNames = _roleProperties;// To verify.
+                    propNames = _roleProperties;// To verify.
                     break;
             }
-            var properties = type.GetProperties().Where(p => propertyNames.Contains(p.Name)).ToArray();
-            for (ushort i = 0; i < properties.Length; i++)
+            var props = type.GetProperties().Where(p => propNames.Contains(p.Name)).ToArray();
+            for (int i = 0; i < props.Length; i++)
             {
-                value = properties[i].GetValue(viewModel)?.ToString() ?? string.Empty;
-                if (value != string.Empty)
+                value = props[i].GetValue(vm)?.ToString() ?? "";
+                if (value != "")
                 {
-                    if (properties[i].Name.Contains("Time"))
+                    if (props[i].Name.Contains("Time"))
                     {
                         if (DateTime.Parse(value) < DateTime.Now.AddMinutes(RESULT_MIN_GAP))
                         {
-                            state.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} cannot be less than the current time");
+                            state.AddModelError(props[i].Name, $"{PropName().Replace(props[i].Name, "$1 $2")} cannot be less than the current time");
                         }
                         if (DateTime.Parse(value).Minute % 15 != 0)
                         {
-                            state.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} minutes must be multiple of 15");
+                            state.AddModelError(props[i].Name, $"{PropName().Replace(props[i].Name, "$1 $2")} minutes must be multiple of 15");
                         }
                     }
-                    else if (type.Name == "ResultViewModel" && properties[i].Name == "UserNames" && value.Split('\n').Length < 2)
+                    else if (type.Name == "ResultViewModel" && props[i].Name == "UserNames" && value.Split('\n').Length < 2)
                     {
-                        state.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} prof and client required");
+                        state.AddModelError(props[i].Name, $"{PropName().Replace(props[i].Name, "$1 $2")} prof and client required");
                     }
                 }
-                else if (!properties[i].Name.Contains("Time") && value == string.Empty)
+                else if (!props[i].Name.Contains("Time") && value == "")
                 {
-                    state.AddModelError(properties[i].Name, $"{Regex.Replace(properties[i].Name, "([a-z])([A-Z])", "$1 $2")} required");
+                    state.AddModelError(props[i].Name, $"{PropName().Replace(props[i].Name, "$1 $2")} required");
                 }
             }
         }
 
-        public object InitializeEntity(object source, object dest)
+        public object InitializeEntity(object src, object dest)
         {
-            var sourceType = source.GetType();
+            var srcType = src.GetType();
             var destType = dest.GetType();
-            var propertyNames = Array.Empty<string>();
-            switch (sourceType.Name)
+            var propNames = Array.Empty<string>();
+            switch (srcType.Name)
             {
                 case "DepartmentViewModel":
-                    propertyNames = _departmentProperties;
+                    propNames = _departmentProperties;
                     break;
                 case "UserViewModel":
-                    propertyNames = _userProperties;
+                    propNames = _userProperties;
                     break;
                 case "ProcedureViewModel":
-                    propertyNames = _procedureProperties;
+                    propNames = _procedureProperties;
                     break;
                 case "ResultViewModel":
-                    propertyNames = _resultProperties;
+                    propNames = _resultProperties;
                     break;
                 case "IdentityRoleProxy":
-                    propertyNames = _roleProperties;// To verify.
+                    propNames = _roleProperties;// To verify.
                     break;
             }
-            var sourceProperties = sourceType.GetProperties()
-                                            .Where(p => propertyNames.Contains(p.Name)).ToArray();
-            var destProperties = destType.GetProperties()
-                                            .Where(p => propertyNames.Contains(p.Name)).ToArray();
-
-            for (ushort i = 0; i < propertyNames.Length; i++)
+            var srcProps = srcType.GetProperties().Where(p => propNames.Contains(p.Name)).OrderBy(p => p.Name).ToArray();
+            var destProps = destType.GetProperties().Where(p => propNames.Contains(p.Name)).OrderBy(p => p.Name).ToArray();
+            propNames = [.. propNames.Order()];
+            for (int i = 0; i < propNames.Length; i++)
             {
-                if (sourceProperties[i].GetValue(source)?.ToString() == string.Empty)
+                if (srcProps[i].GetValue(src)?.ToString() == "")
                 {
                     continue;
                 }
-                switch (destProperties[i].PropertyType.Name)
+                switch (destProps[i].PropertyType.Name)
                 {
                     case "DateTime":
-                        destProperties.FirstOrDefault(p => p.Name == propertyNames[i])
-                                ?.SetValue(dest, DateTime.Parse(sourceProperties.FirstOrDefault(p => p.Name == propertyNames[i])
-                                                                        ?.GetValue(source)?.ToString() ?? "0"));
+                        destProps.FirstOrDefault(p => p.Name == propNames[i])
+                                ?.SetValue(dest, DateTime.Parse(srcProps.FirstOrDefault(p => p.Name == propNames[i])
+                                                                        ?.GetValue(src)?.ToString() ?? "0"));
                         break;
                     case "Byte[]":
-                        destProperties.FirstOrDefault(p => p.Name == propertyNames[i])
-                                ?.SetValue(dest, ((sbyte[]?)sourceProperties.FirstOrDefault(p => p.Name == propertyNames[i])
-                                                                        ?.GetValue(source))?.Select(sb => (byte)(sb + 128)).ToArray());
+                        destProps.FirstOrDefault(p => p.Name == propNames[i])
+                                ?.SetValue(dest, ((sbyte[]?)srcProps.FirstOrDefault(p => p.Name == propNames[i])
+                                                                        ?.GetValue(src))?.Select(sb => (byte)(sb + 256)).ToArray());
                         break;
                     default:
-                        destProperties.FirstOrDefault(p => p.Name == propertyNames[i])
-                                ?.SetValue(dest, sourceProperties.FirstOrDefault(p => p.Name == propertyNames[i])
-                                                                        ?.GetValue(source));
+                        destProps.FirstOrDefault(p => p.Name == propNames[i])
+                                ?.SetValue(dest, srcProps.FirstOrDefault(p => p.Name == propNames[i])
+                                                                        ?.GetValue(src));
                         break;
                 }
             }
             return dest;
         }
 
-        public object InitializeViewModel(object source, object dest)// To verify for roles.
+        public object InitializeViewModel(object src, object dest)// To verify for roles.
         {
-            var sourceType = source.GetType();
+            var srcType = src.GetType();
             var destType = dest.GetType();
-            var propertyNames = Array.Empty<string>();
-            string valueToSet;
-            switch (sourceType.Name)
+            var propNames = Array.Empty<string>();
+            string toSet;
+            switch (srcType.Name)
             {
                 case "DepartmentProxy":
-                    propertyNames = _departmentProperties;
+                    propNames = _departmentProperties;
                     break;
                 case "ApplicationUserProxy":
-                    propertyNames = _userProperties;
+                    propNames = _userProperties;
                     break;
                 case "ProcedureProxy":
-                    propertyNames = _procedureProperties;
+                    propNames = _procedureProperties;
                     break;
                 case "ResultProxy":
-                    propertyNames = _resultProperties;
+                    propNames = _resultProperties;
                     break;
                 case "IdentityRoleProxy":
-                    propertyNames = _roleProperties;// To verify.
+                    propNames = _roleProperties;// To verify.
                     break;
             }
-            propertyNames = new[] { "Id" }.Concat(propertyNames).ToArray();
-            var sourceProperties = sourceType.GetProperties()
-                                            .Where(p => propertyNames.Contains(p.Name)).ToArray();
-            var destProperties = destType.GetProperties()
-                                            .Where(p => propertyNames.Contains(p.Name)).ToArray();
-
-            for (ushort i = 0; i < propertyNames.Length; i++)
+            //propertyNames = [.. first, .. propertyNames];
+            var srcProps = srcType.GetProperties().Where(p => propNames.Contains(p.Name)).OrderBy(p => p.Name).ToArray();
+            var destProps = destType.GetProperties().Where(p => propNames.Contains(p.Name)).OrderBy(p => p.Name).ToArray();
+            propNames = [.. propNames.Order()];
+            for (int i = 0; i < propNames.Length; i++)
             {
-                valueToSet = sourceProperties[i].GetValue(source)?.ToString() ?? string.Empty;
-                if (valueToSet != default && valueToSet != default(DateTime).ToString() && sourceProperties[i].Name != "Photo")
+                toSet = srcProps[i].GetValue(src)?.ToString() ?? "";
+                if (toSet != default && toSet != default(DateTime).ToString() && srcProps[i].Name != "Photo")
                 {
-                    destProperties.FirstOrDefault(p => p.Name == propertyNames[i])
-                            ?.SetValue(dest, valueToSet);
+                    destProps.FirstOrDefault(p => p.Name == propNames[i])
+                            ?.SetValue(dest, toSet);
                 }
-                else if (sourceProperties[i].Name == "Photo")
+                else if (srcProps[i].Name == "Photo")
                 {
-                    destProperties.FirstOrDefault(p => p.Name == propertyNames[i])
-                            ?.SetValue(dest, sourceProperties[i].GetValue(source));
+                    destProps.FirstOrDefault(p => p.Name == propNames[i])
+                            ?.SetValue(dest, srcProps[i].GetValue(src));
                 }
             }
             return dest;
         }
+
+        [GeneratedRegex("([a-z])([A-Z])")]
+        private static partial Regex PropName();
     }
 }

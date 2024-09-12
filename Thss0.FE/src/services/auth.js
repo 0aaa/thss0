@@ -40,7 +40,7 @@ const getTokenAsync = async target => {
         eraseErrors()
         const data = await fetchResult.json()
         sessionStorage.setItem(AUTH_TOKEN, data.access_token)
-        sessionStorage.setItem(USERNAME, data.username)
+        sessionStorage.setItem(USERNAME, data.username.replace('_', ' '))
         UseToast('Logged in')
         return data
     } else {

@@ -2,46 +2,67 @@ import React, { Children } from 'react'
 import { connect } from 'react-redux'
 import { updateContent } from '../../../actionCreator/actionCreator'
 import { editRecord, getRecords } from '../../../services/entities'
-import { Offcanvas } from 'bootstrap'
+import { Carousel, Offcanvas } from 'bootstrap'
 
 class Edit extends React.Component {
     constructor(props) {
         super(props)
-        this.state = { keys: [] }
+        this.state = { keys: [], roles: [] }
+    }
+
+    async componentDidMount() {
+        //const keys = Object.keys(this.props.content[0]).filter(k => !['id', 'creationTime', 'department', 'result', 'user', 'procedure', 'substance'].includes(k))
+        //if (this.state.keys.length === 0 || this.state.keys.join() !== keys.join()) {
+        //    this.setState({ keys })
+        //}
+        document.getElementById('addCarousel') && new Carousel('#addCarousel')
+        this.getKeys()
     }
 
     componentDidUpdate() {
-        const keys = Object.keys(this.props.content[0]).filter(key => !['id', 'creationTime', 'department', 'result', 'user', 'procedure', 'substance'].includes(key))
-        if (this.state.keys.length === 0 || this.state.keys.join() !== keys.join()) {
+        //const keys = Object.keys(this.props.content[0]).filter(k => !['id', 'creationTime', 'department', 'result', 'user', 'procedure', 'substance'].includes(k))
+        //if (this.state.keys.length === 0 || this.state.keys.join() !== keys.join()) {
+        //    this.setState({ keys })
+        //}
+        this.getKeys()
+    }
+
+    getKeys() {
+        let keys = []
+        if (this.props.detailedItem) {
+            keys = Object.keys(this.props.detailedItem).filter(key => !['id', 'creationTime', 'department', 'result', 'user', 'procedure', 'substance'].includes(key)).reverse()
+        }
+        if (this.state.keys.join() !== keys.join()) {
             this.setState({ keys })
+            this.state.roles.length === 0 && ['professional', 'client'].includes(this.props.entityName) && getRecords('role', this.props.printBy, this.props.currentPage, this.props.globalOrder).then(res => this.setState({ roles: res.content }))
         }
     }
 
-    async updateDatalist(event) {
-        event.preventDefault()
-        const currentKey = event.target.id.replace(/.{11}$/, '')
-        const datalist = event.target.parentNode
+    async updateDatalist(e) {
+        e.preventDefault()
+        const currentKey = e.target.id.replace(/.{11}$/, '')
+        const datalist = e.target.parentNode
         let contentArr = []
         let optionToAdd = null
         if (['departmentNames', 'userNames', 'procedure', 'resultNames', 'procedureNames'].includes(currentKey)
-            && event.target.value.length > 3) {
-            contentArr = (await getRecords(`search/${currentKey}/${encodeURIComponent(event.target.value)}`)).content
+                && e.target.value.length > 3) {
+            contentArr = (await getRecords(`search/${currentKey}/${encodeURIComponent(e.target.value)}`)).content
         }
         datalist.innerHTML = ''
-        datalist.appendChild(event.target)
-        event.target.focus()
-        for (let index = -1; index < contentArr.length && event.target.value; index++) {
+        datalist.appendChild(e.target)
+        e.target.focus()
+        for (let i = -1; i < contentArr.length && e.target.value; i++) {
             optionToAdd = document.createElement('pre')
-            optionToAdd.className = 'border bg-white p-2 mb-0 user-select-none'
-            if (index > -1) {
-                optionToAdd.innerHTML = contentArr[index].name ?? contentArr[index].userName ?? contentArr[index].content
+            optionToAdd.className = 'border bg-white p-2 mb-0 user-select-none bg-opacity-50'
+            if (i > -1) {
+                optionToAdd.innerHTML = contentArr[i].name ?? contentArr[i].userName ?? contentArr[i].content
             } else {
-                if (currentKey.endsWith('Time') && event.target.value.match(/.{2}$/)[0] % 15) {
-                    const timeToAdjust = new Date(event.target.value)
-                    timeToAdjust.setMinutes(timeToAdjust.getMinutes() - timeToAdjust.getTimezoneOffset() + 15 - event.target.value.match(/.{2}$/)[0] % 15)
+                if (currentKey.endsWith('Time') && e.target.value.match(/.{2}$/)[0] % 15) {
+                    const timeToAdjust = new Date(e.target.value)
+                    timeToAdjust.setMinutes(timeToAdjust.getMinutes() - timeToAdjust.getTimezoneOffset() + 15 - e.target.value.match(/.{2}$/)[0] % 15)
                     optionToAdd.innerHTML = timeToAdjust.toISOString().replace(/.{8}$/, '')
                 } else {
-                    optionToAdd.innerHTML = event.target.value
+                    optionToAdd.innerHTML = e.target.value
                 }
             }
             datalist.appendChild(optionToAdd)
@@ -49,127 +70,140 @@ class Edit extends React.Component {
         }
     }
 
-    drag(dataListOption, currentKey) {
-        let sourceX = 0
-        let sourceY = 0
-        let dragBuffer = null
-        const editForm = document.getElementById('editForm')
-        dataListOption.onmousedown = () => {
-            dataListOption.style.position = 'fixed'
-            sourceX = dataListOption.style.left
-            sourceY = dataListOption.style.top
-            dragBuffer = dataListOption
-
-            document.onmouseup = event => {
+    drag(option, key) {
+        let srcX = 0
+        let srcY = 0
+        let buff = null
+        const form = document.getElementById('editForm')
+        option.onmousedown = () => {
+            option.style.position = 'fixed'
+            srcX = option.style.left
+            srcY = option.style.top
+            buff = option
+            buff.className = 'border bg-white p-2 mb-0 user-select-none w-25 bg-opacity-50'
+            document.onmouseup = e => {
                 document.onmousemove = null
                 document.onmouseup = null
-                if (event.pageX > editForm.offsetParent.offsetLeft && event.pageX < editForm.offsetParent.offsetLeft + editForm.offsetWidth
-                    && event.pageY > editForm.offsetTop && event.pageY < editForm.offsetTop + editForm.offsetHeight) {
+                const li = document.getElementById(key)
+                const pres = li.getElementsByTagName('pre')
+                if (e.pageX > form.offsetParent.offsetLeft && e.pageX < form.offsetParent.offsetLeft + form.offsetWidth
+                        && e.pageY > form.offsetTop && e.pageY < form.offsetTop + form.offsetHeight) {
 
-                    dragBuffer.style.position = 'static'
-                    document.getElementById(currentKey).appendChild(dragBuffer)
-                    if (currentKey === 'password-edit') {
-                        const passwordClone = dragBuffer.cloneNode(true)
-                        dragBuffer.className = 'd-none'
-                        passwordClone.innerHTML = passwordClone.innerHTML.replace(/\S/g, '*')
-                        document.getElementById(currentKey).appendChild(passwordClone)
+                    buff.style.position = 'static'
+                    if (pres.length < 2) {
+                        if (pres.length === 1) {
+                            pres[pres.length - 1].className = 'd-none'
+                        }
+                        li.appendChild(buff)
+                    } else {
+                        li.replaceChild(buff, li.lastChild)
                     }
-                } else if (dragBuffer) {
-                    dragBuffer.style.position = 'static'
-                    dragBuffer.style.left = sourceX
-                    dragBuffer.style.top = sourceY
-                    document.getElementById(`${currentKey}-input`).parentNode.appendChild(dragBuffer)
+                    buff.className = 'border bg-white p-2 mb-0 user-select-none w-100 bg-opacity-50'
+                    if (key === 'password-edit') {
+                        const passwordClone = buff.cloneNode(true)
+                        buff.className = 'd-none'
+                        passwordClone.innerHTML = passwordClone.innerHTML.replace(/\S/g, '*')
+                        document.getElementById(key).appendChild(passwordClone)
+                    }
+                } else if (buff) {
+                    buff.style.position = 'static'
+                    buff.style.left = srcX
+                    buff.style.top = srcY
+                    document.getElementById(`${key}-input`).parentNode.appendChild(buff)
+                    buff.className = 'border bg-white p-2 mb-0 user-select-none w-100 bg-opacity-50'
+                    if (pres.length > 0) {
+                        pres[0].className = 'border bg-white p-2 mb-0 user-select-none bg-opacity-50'
+                    }
                 }
-                dragBuffer = null
+                buff = null
             }
-            document.onmousemove = event => {
-                if (dragBuffer) {
-                    dragBuffer.style.left = `${event.pageX}px`
-                    dragBuffer.style.top = `${event.clientY}px`
+            document.onmousemove = e => {
+                if (buff) {
+                    buff.style.left = `${e.pageX}px`
+                    buff.style.top = `${e.clientY}px`
                 }
             }
         }
     }
 
-    printForm(event) {
-        let currentIndex = 0
-        if (event.target.className === 'active') {
-            currentIndex = [...event.target.parentNode.childNodes].indexOf(event.target)
+    printForm(e) {
+        let currInd = 0
+        if (e.target.className === 'active') {
+            currInd = [...e.target.parentNode.childNodes].indexOf(e.target)
         } else {
-            currentIndex = [...document.getElementsByClassName('carousel-item')].filter(slide => slide.parentNode.parentNode.id === 'editCarousel').findIndex(i => i.className.includes('active'))
-            if (event.target.className.includes('carousel-control-next')) {
-                currentIndex = (currentIndex < this.state.keys.length - 1 && currentIndex + 1) || 0
+            currInd = [...document.getElementsByClassName('carousel-item')].filter(sl => sl.parentNode.parentNode.id === 'editCarousel').findIndex(i => i.className.includes('active'))
+            if (e.target.className.includes('carousel-control-next')) {
+                currInd = (currInd < this.state.keys.length - 1 && currInd + 1) || 0
             } else {
-                currentIndex = (currentIndex === 0 && this.state.keys.length - 1) || currentIndex - 1
+                currInd = (currInd === 0 && this.state.keys.length - 1) || currInd - 1
             }
         }
         const lis = document.getElementsByClassName('edit-li')
-        for (let index = 0; index < lis.length; index++) {
-            lis[index].className = ((index <= currentIndex || lis[index].childNodes[2]) && 'edit-li d-block') || 'edit-li d-none'
+        for (let i = 0; i < lis.length; i++) {
+            //lis[i].className = ((i <= currInd || lis[i].childNodes[2]) && 'edit-li d-block') || 'edit-li d-none'
         }
     }
 
     render() {
         return <div className="d-flex gap-1 offcanvas-body">
-            <form id="editForm" onSubmit={event => this.props.handleEdit(event, {...this.props})}
-                className="d-flex flex-column h-100 w-50">
-                <ul className="list-unstyled ms-2">
+            <form id="editForm" onSubmit={e => this.props.handleEdit(e, {...this.props})} className="d-flex flex-column h-100 w-50">
+                <ul className="list-unstyled ms-2 overflow-y-auto">
                     {(this.props.detailedItem
-                        && Children.toArray(this.state.keys.map(key =>
-                            <li id={`${key}-edit`} className="edit-li">
-                                <span id={`${key}Error`} className="d-none"></span>
-                                <span>{key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}</span>
-                                {Children.toArray(this.props.detailedItem[key]?.split('\n').filter(name => name !== '').map(name =>
-                                    // (key !== 'photo'
-                                    //     && <pre onMouseDown={event => this.drag(event.target, `${key}-edit`)} className="border bg-white p-2 mb-0 user-select-none">
-                                    //         {name}
-                                    //     </pre>
-                                    // )
-                                    // || <img onMouseDown={event => this.drag(event.target, `${key}-edit`)} src={`data:image/jpeg;base64, ${this.props.detailedItem[key]}`} />
-                                    <pre onMouseDown={event => this.drag(event.target, `${key}-edit`)} className="border bg-white p-2 mb-0 user-select-none">
-                                            {name}
-                                        </pre>
-                                ))}
-                            </li>
-                        )))
-                        || <div className="h-75 d-flex justify-content-center align-items-center gap-1">
-                            {Children.toArray([...Array(3).keys()].map(() =>
-                                <div className="spinner-grow text-primary" role="status">
-                                    <span className="visually-hidden">Loading...</span>
-                                </div>
-                            ))}
-                        </div>
-                    }
+                        && Children.toArray(this.state.keys.map(k =>
+                            <li id={`${k}-edit`} className="edit-li">
+                                <span id={`${k}Error`} className="d-none"></span>
+                                <span>{k.replace(/([A-Z]+)/g, ' $1').replace(/^./, k[0].toUpperCase())}</span>
+                                {(k !== 'photo' && Children.toArray(this.props.detailedItem[k]?.split('\n').filter(name => name !== '').map(name =>
+                                    <pre className="border bg-white p-2 mb-0 user-select-none bg-opacity-50">{name}</pre>)))
+                                || <>
+                                    <img onMouseDown={e => this.drag(e.target, `${k}-edit`)} src={`data:image/jpeg;base64, ${btoa(String.fromCharCode.apply(null, new Uint8Array(this.props.detailedItem['photo'])))}`} alt="" className="w-100" />
+                                    <input type="file"
+                                        id={`${k}-edit-input`}
+                                        onChange={e => this.updateDatalist(e)}
+                                        className="form-control border-0 rounded-0" />
+                                </>}
+                            </li>)))
+                    || <div className="h-75 d-flex justify-content-center align-items-center gap-1">
+                        {Children.toArray([...Array(3).keys()].map(() =>
+                            <div className="spinner-grow text-primary" role="status">
+                                <span className="visually-hidden">Loading...</span>
+                            </div>
+                        ))}
+                    </div>}
                 </ul>
                 <button type="submit" className="btn btn-dark border-0 rounded-0 mt-auto">Submit</button>
             </form>
-            <div id="editCarousel" className="carousel slide w-50">
-                <div className="carousel-indicators">
-                    {Children.toArray([...Array(this.state.keys.length).keys()].map(i =>
-                        <button onClick={event => this.printForm(event)} className={(i === 0 && 'active') || ''} data-bs-target="#editCarousel" data-bs-slide-to={i} aria-current="true" aria-label={`Slide ${i}`}></button>
-                    ))}
+            <div className="d-flex flex-column w-50">
+                <div id="editCarousel" className="carousel slide h-100">
+                    <div className="carousel-indicators">
+                        {Children.toArray([...Array(this.state.keys.length).keys()].map(i =>
+                            <button onClick={e => this.printForm(e)} className={(i === 0 && 'active') || ''} data-bs-target="#editCarousel" data-bs-slide-to={i} aria-current="true"></button>
+                        ))}
+                    </div>
+                    <div className="carousel-inner">
+                        {Children.toArray(this.state.keys.map((k, i) =>
+                            k !== 'photo'
+                            && <div className={`carousel-item ${(i === 0 && 'active') || ''}`}>
+                                <input type={((k.endsWith('Time') || k === 'doB') && 'datetime-local') || (['password', 'email'].includes(k) && k) || 'text'}
+                                    id={`${k}-edit-input`}
+                                    onChange={e => this.updateDatalist(e)}
+                                    placeholder={k.replace(/([A-Z]+)/g, ' $1').replace(/^./, k[0].toUpperCase())}
+                                    className="form-control border-0 rounded-0" />
+                            </div>
+                        ))}
+                    </div>
+                    <button onClick={e => this.printForm(e)} className="carousel-control-prev mt-auto mb-3"
+                            data-bs-target="#editCarousel" data-bs-slide="prev" style={{ height: 'fit-content' }}>
+                        <span className="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span className="visually-hidden">Previous</span>
+                    </button>
+                    <button onClick={e => this.printForm(e)} className="carousel-control-next mt-auto mb-3"
+                            data-bs-target="#editCarousel" data-bs-slide="next" style={{ height: 'fit-content' }}>
+                        <span className="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span className="visually-hidden">Next</span>
+                    </button>
                 </div>
-                <div className="carousel-inner">
-                    {Children.toArray(this.state.keys.map((key, i) =>
-                        <div className={`carousel-item ${(i === 0 && 'active') || ''}`}>
-                            <input type={((key.endsWith('Time') || key === 'doB') && 'datetime-local') || (['password', 'email'].includes(key) && key) || (key === 'photo' && 'file') || 'text'}
-                                id={`${key}-edit-input`}
-                                onChange={event => this.updateDatalist(event)}
-                                placeholder={key.replace(/([A-Z]+)/g, ' $1').replace(/^./, key[0].toUpperCase())}
-                                className="form-control border-0 rounded-0" />
-                        </div>
-                    ))}
-                </div>
-                <button onClick={event => this.printForm(event)} className="carousel-control-prev mt-auto mb-3"
-                        data-bs-target="#editCarousel" data-bs-slide="prev" style={{ height: 'fit-content' }}>
-                    <span className="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span className="visually-hidden">Previous</span>
-                </button>
-                <button onClick={event => this.printForm(event)} className="carousel-control-next mt-auto mb-3"
-                        data-bs-target="#editCarousel" data-bs-slide="next" style={{ height: 'fit-content' }}>
-                    <span className="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span className="visually-hidden">Next</span>
-                </button>
+                <button type="button" className="btn btn-dark border-0 rounded-0 mt-auto w-100" data-bs-dismiss="offcanvas">Cancel</button>
             </div>
         </div>
     }
@@ -178,50 +212,51 @@ class Edit extends React.Component {
 const EditRouter = props => <Edit {...props} />
 
 const mapStateToProps = state => ({
-        content: state.content
-        , detailedItem: state.detailedItem
+    content: state.content
+    , detailedItem: state.detailedItem
 })
 
 const mapDispatchToProps = dispatch => ({
-    handleEdit: async (event, stateCopy) => {
-        event.preventDefault()
-        Offcanvas.getInstance('#offcanvasEdit').hide()
-        const editCredentials = [...event.target.childNodes[0].childNodes]
-        const editDictionary = {}
+    handleEdit: async (e, stateCopy) => {
+        e.preventDefault()
+        Offcanvas.getInstance('#crud').hide()
+        const toSet = [...e.target.childNodes[0].childNodes]
+        const buffer = {}
+        const slides = document.getElementById('editCarousel').childNodes[1].childNodes
         let childsArrSize
-        const carouselSlides = document.getElementById('editCarousel').childNodes[1].childNodes
-        let controlBuffer
-        for (let index = 0; index < editCredentials.length; index++) {
-            if (editCredentials[index].childNodes[2]) {
-                editDictionary[editCredentials[index].id] = ''
+        let controlBuff
+        for (let i = 0; i < toSet.length; i++) {
+            if (toSet[i].childNodes[2]) {
+                buffer[toSet[i].id] = ''
             }
-            childsArrSize = editCredentials[index].childNodes.length
+            childsArrSize = toSet[i].childNodes.length
             // Test begin.
-            if (editCredentials[index].id === 'photo-edit') {
-                const fp = editCredentials[index].childNodes[2].innerHTML
+            console.log(toSet[i].id)
+            if (toSet[i].id === 'photo-edit') {
+                const fp = toSet[i].childNodes[2].innerHTML
                 console.log(fp)
             }
             // Test end.
-            for (let jndex = 2; jndex < childsArrSize; jndex++) {
-                if (editCredentials[index].id !== 'password' || editCredentials[index].childNodes[2].className === 'd-none') {
-                    editDictionary[editCredentials[index].id] += `${editCredentials[index].childNodes[2].innerHTML} `
+            for (let j = 2; j < childsArrSize; j++) {
+                if (toSet[i].id !== 'password' || toSet[i].childNodes[2].className === 'd-none') {
+                    buffer[toSet[i].id] += `${toSet[i].childNodes[2].innerHTML} `
                 }
-                editCredentials[index].childNodes[2].remove()
+                toSet[i].childNodes[2].remove()
             }
-            if (editDictionary[editCredentials[index].id]) {                    
-                editDictionary[editCredentials[index].id] = editDictionary[editCredentials[index].id].trimEnd()
+            if (buffer[toSet[i].id]) {                    
+                buffer[toSet[i].id] = buffer[toSet[i].id].trimEnd()
             }
-            controlBuffer = carouselSlides[index].childNodes[0]
-            controlBuffer.value = ''
-            carouselSlides[index].innerHTML = ''
-            carouselSlides[index].appendChild(controlBuffer)
-            carouselSlides[index].className = 'carousel-item'
-            carouselSlides[0].parentNode.previousSibling.childNodes[index].className = ''
+            controlBuff = slides[i].childNodes[0]
+            controlBuff.value = ''
+            slides[i].innerHTML = ''
+            slides[i].appendChild(controlBuff)
+            slides[i].className = 'carousel-item'
+            slides[0].parentNode.previousSibling.childNodes[i].className = ''
         }
-        carouselSlides[0].className += ' active'
-        carouselSlides[0].parentNode.previousSibling.childNodes[0].className = 'active'
+        slides[0].className += ' active'
+        slides[0].parentNode.previousSibling.childNodes[0].className = 'active'
 
-        // await editRecord(`${stateCopy.entityName}/${stateCopy.detailedItem['id']}`, editDictionary)
+        await editRecord(`${stateCopy.entityName}/${stateCopy.detailedItem['id']}`, buffer)
         const data = await getRecords(stateCopy.entityName)
         data && dispatch(updateContent({ ...stateCopy, content: data.content }))
     }    

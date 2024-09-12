@@ -5,7 +5,7 @@ import { updateAuth } from '../../actionCreator/actionCreator'
 import { connect } from 'react-redux'
 
 const Register = props =>
-    <form onSubmit={event => props.HandleRegister(event)}>
+    <form onSubmit={e => props.HandleRegister(e)}>
         <div id="registerError" className="alert alert-danger d-none"></div>
         <div className="modal-body">
             <input id="name" className="form-control border-0 border-bottom rounded-0" placeholder="Name" />
@@ -23,10 +23,10 @@ const Register = props =>
 const mapStateToProps = state => ({ btnColor: state.btnColor })
 
 const mapDispatchToProps = dispatch => ({
-    HandleRegister: async event => {
-        event.preventDefault()
-        !await makeRegister(event.target) && window.location.reload()
-        !await getTokenAsync(event) && window.location.reload()//
+    HandleRegister: async e => {
+        e.preventDefault()
+        !await makeRegister(e.target) && window.location.reload()
+        !await getTokenAsync(e) && window.location.reload()//
         const navigate = useNavigate()
         useEffect(() => navigate('/'))
         dispatch(updateAuth())

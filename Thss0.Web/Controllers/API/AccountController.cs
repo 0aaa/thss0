@@ -12,33 +12,20 @@ namespace Thss0.Web.Controllers.API
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class AccountController : Controller
+    public class AccountController(SignInManager<ApplicationUser> sm, RoleManager<IdentityRole> rm, ApplicationDbContext c) : Controller
     {
         private const string CLAIM_AUTHENTICATION_TYPE = "Token";
         private const string ERROR_TEXT = "Wrong login or password";
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly ApplicationDbContext _context;
 
-        public AccountController(SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
+        private async Task<ClaimsIdentity> GetIdentity(string name, string pwd)
         {
-            _signInManager = signInManager;
-            _roleManager = roleManager;
-            _context = context;
-        }
-
-        private async Task<ClaimsIdentity> GetIdentity(string name, string password)
-        {
-            var result = await _signInManager.PasswordSignInAsync(name, password, false, false);
-            var user = _signInManager.UserManager.Users.FirstOrDefault(u => u.Name == name);
-            if (result.Succeeded && user != null)
+            var sr = await sm.PasswordSignInAsync(name, pwd, false, false);
+            var user = sm.UserManager.Users.FirstOrDefault(u => u.Name == name);
+            if (sr.Succeeded && user != null)
             {
                 return new ClaimsIdentity(
-                    new List<Claim>
-                    {
-                        new Claim(ClaimsIdentity.DefaultNameClaimType, name)
-                        , new Claim(ClaimsIdentity.DefaultRoleClaimType, (await _signInManager.UserManager.GetRolesAsync(user))[0])
-                    }
+                    [new(ClaimsIdentity.DefaultNameClaimType, name)
+                        , new(ClaimsIdentity.DefaultRoleClaimType, (await sm.UserManager.GetRolesAsync(user))[0])]
                     , CLAIM_AUTHENTICATION_TYPE
                     , ClaimsIdentity.DefaultNameClaimType
                     , ClaimsIdentity.DefaultRoleClaimType);
@@ -50,14 +37,14 @@ namespace Thss0.Web.Controllers.API
         [HttpPost]
         public async Task<ActionResult> Token(UserViewModel user)
         {
-            if (!_signInManager.UserManager.Users.Any())
+            if (!sm.UserManager.Users.Any())
             {
-                await new TestData().Initialize(_signInManager, _roleManager, _context);
+                await new TestData().Initialize(sm, rm, c);
             }
             var identity = await GetIdentity(user.Name, user.Password);
             if (identity.HasClaim(ClaimsIdentity.DefaultNameClaimType, user.Name))
             {
-                var token = new JwtSecurityToken(
+                var tkn = new JwtSecurityToken(
                     issuer: AuthCredentials.ISSUER
                     , audience: AuthCredentials.AUDIENCE
                     , notBefore: DateTime.Now
@@ -65,10 +52,10 @@ namespace Thss0.Web.Controllers.API
                     , expires: DateTime.Now.Add(TimeSpan.FromDays(AuthCredentials.LIFETIME))
                     , signingCredentials: new SigningCredentials(AuthCredentials.GetSigningKey(), SecurityAlgorithms.HmacSha256)
                 );
-                var encodedToken = new JwtSecurityTokenHandler().WriteToken(token);
+                var encodedTkn = new JwtSecurityTokenHandler().WriteToken(tkn);
                 return Json(new
                 {
-                    access_token = encodedToken
+                    access_token = encodedTkn
                     , username = identity.Name
                 });
             }
